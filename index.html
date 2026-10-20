@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Thunder Times">
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#3a2370">
-<meta name="thunder-times-version" content="3">
+<meta name="thunder-times-version" content="4">
 <meta name="description" content="Pikachu's Thunder Times — a kids' times-tables dungeon crawler.">
 <title>Pikachu's Thunder Times</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%23ffd21f'/%3E%3Cpath%20d='M36%206%20L14%2036%20h16%20L26%2058%20L50%2026%20H34z'%20fill='%233b2a10'/%3E%3C/svg%3E">
@@ -74,8 +74,9 @@ input{font-family:inherit;}
 .tcard img,.tcard .fallback{width:96px;height:96px;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;margin:0 auto}
 .tcard .nm{font-size:18px}
 .tcard .sub{font-size:13px;opacity:.75}
-.modeRow{display:flex;gap:8px;align-items:center;padding:0 12px 4px;flex:none}
-.modeBtn{flex:1;max-width:240px;padding:10px 8px;border-radius:16px;font-weight:900;font-size:clamp(15px,2.2vh,18px);background:rgba(255,255,255,.16);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.22)}
+.modeRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0 12px 4px;flex:none}
+.modeBtn{flex:1 1 30%;min-width:0;max-width:240px;padding:8px 6px;border-radius:16px;font-weight:900;font-size:clamp(14px,2.1vh,18px);line-height:1.15;background:rgba(255,255,255,.16);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.22)}
+.modeBtn small{display:block;font-size:11px;font-weight:800;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .modeBtn.on{background:#ffd21f;color:#3b2a10}
 .modeHint{margin:0;padding:0 14px 8px;color:#ffe9a8;font-weight:800;font-size:14px;text-align:center;flex:none}
 .teamfoot{flex:none;display:flex;flex-direction:column;gap:8px;align-items:center;padding:0 12px 12px}
@@ -144,6 +145,11 @@ input{font-family:inherit;}
 .ansBtn.right{background:#22c55e !important}
 @keyframes pulseGlow{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 .lunge{animation:lunge .34s ease-in-out}
+.lungeFast{animation:lunge .15s ease-out}
+.hitflashFast{animation:hitflash .15s linear}
+#battle.bossmode #timerNum{font-size:clamp(32px,6.2vh,54px);min-width:2.4ch;line-height:.9}
+#battle.bossmode #timerBar{height:22px}
+#battle.bossmode #streakPill{background:#ffd21f;color:#3b2a10;font-size:clamp(18px,3vh,28px)}
 @keyframes lunge{0%{transform:translate(0,0)}40%{transform:translate(22px,-14px) scale(1.06)}100%{transform:translate(0,0)}}
 .lungeF{animation:lungeF .34s ease-in-out}
 @keyframes lungeF{0%{transform:translate(0,0)}40%{transform:translate(-20px,12px) scale(1.05)}100%{transform:translate(0,0)}}
@@ -236,7 +242,7 @@ input{font-family:inherit;}
 }
 </style>
 </head>
-<body data-version="3">
+<body data-version="4">
 
 <section id="title" class="screen active">
   <div class="corner">
@@ -261,6 +267,7 @@ input{font-family:inherit;}
   <div class="modeRow">
     <button class="modeBtn on" id="modeNormal" type="button">Normal</button>
     <button class="modeBtn" id="modeAdvanced" type="button">Advanced</button>
+    <button class="modeBtn" id="modeBoss" type="button">Boss<small id="bossBestLabel">Best —</small></button>
     <div class="pill" id="xpPill">0 XP</div>
   </div>
   <p class="modeHint" id="modeHint">Tap the right answer to attack.</p>
@@ -350,7 +357,7 @@ input{font-family:inherit;}
 
 <div id="confirmOv"><div class="dialog">
   <h3>Erase all progress?</h3>
-  <p>This clears the team (Pikachu stays), XP, levels, the question deck, the best floor, and every practice stat. It can't be undone.</p>
+  <p>This clears the team (Pikachu stays), XP, levels, the question deck, the best floor, Boss Mode scores, and every practice stat. It can't be undone.</p>
   <div class="btnrow">
     <button class="bigbtn gray" id="cfNo" type="button">Keep it</button>
     <button class="bigbtn r" id="cfYes" type="button">Yes, erase</button>
@@ -483,8 +490,9 @@ RAW.forEach(function(r){
 var SPRITE='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 var KEY='thunder-times-v2';
 
+var BOSS_NEED=50, BOSS_MS=60000, BOSS_XP=120, BOSS_ID=150;
 function defaults(){
-  return {v:3,muted:false,team:[{id:25,level:1}],bestFloor:0,facts:{},answered:0,runs:0,lastPick:25,xp:0,mode:'normal',deck:{max:0,remaining:[],last:''}};
+  return {v:3,muted:false,team:[{id:25,level:1}],bestFloor:0,facts:{},answered:0,runs:0,lastPick:25,xp:0,mode:'normal',deck:{max:0,remaining:[],last:''},bossBest:{correct:0,winMs:0},bossWins:0};
 }
 function factStat(f){
   return {r:Math.max(0,Math.floor(+f.r||0)),w:Math.max(0,Math.floor(+f.w||0)),t:Math.max(0,Math.floor(+f.t||0))};
@@ -497,7 +505,14 @@ function sanitize(s){
   d.answered=Math.max(0,Math.floor(+s.answered||0));
   d.runs=Math.max(0,Math.floor(+s.runs||0));
   d.xp=Math.max(0,Math.floor(+s.xp||0));
-  d.mode=s.mode==='advanced'?'advanced':'normal';
+  d.mode=s.mode==='advanced'?'advanced':(s.mode==='boss'?'boss':'normal');
+  d.bossWins=Math.max(0,Math.floor(+s.bossWins||0));
+  if(s.bossBest&&typeof s.bossBest==='object'){
+    d.bossBest={
+      correct:Math.max(0,Math.min(BOSS_NEED,Math.floor(+s.bossBest.correct||0))),
+      winMs:Math.max(0,Math.floor(+s.bossBest.winMs||0))
+    };
+  }
   var team=[], seen={};
   if(Array.isArray(s.team)){
     s.team.forEach(function(item){
@@ -724,13 +739,25 @@ var returnTo='title';
 function paintBest(){$('#bestPill').textContent=S.bestFloor?('Best floor '+S.bestFloor):'Best floor —';}
 $('#playBtn').addEventListener('click',function(){SFX.tap();openTeam();});
 $('#teamBack').addEventListener('click',function(){SFX.tap();show('title');paintBest();});
+function bossBestText(){
+  var b=S.bossBest||{correct:0,winMs:0};
+  if(b.winMs) return '50 in '+(b.winMs/1000).toFixed(1)+'s';
+  if(b.correct) return 'Best '+b.correct+'/50';
+  return 'Best —';
+}
 function paintMode(){
-  var adv=S.mode==='advanced';
-  $('#modeNormal').classList.toggle('on',!adv);
-  $('#modeAdvanced').classList.toggle('on',adv);
-  $('#modeHint').textContent=adv?'Pick a move, then solve it to attack.':'Tap the right answer to attack.';
-  $('#startRun').textContent=adv?'Start advanced run':'Start the dungeon';
+  var mode=S.mode==='advanced'?'advanced':(S.mode==='boss'?'boss':'normal');
+  $('#modeNormal').classList.toggle('on',mode==='normal');
+  $('#modeAdvanced').classList.toggle('on',mode==='advanced');
+  $('#modeBoss').classList.toggle('on',mode==='boss');
+  var hint='Tap the right answer to attack.';
+  var start='Start the dungeon';
+  if(mode==='advanced'){hint='Pick a move, then solve it to attack.';start='Start advanced run';}
+  if(mode==='boss'){hint='50 right answers in 60 seconds. One miss and Mewtwo wins.';start='Challenge Mewtwo';}
+  $('#modeHint').textContent=hint;
+  $('#startRun').textContent=start;
   $('#xpPill').textContent=S.xp+' XP';
+  $('#bossBestLabel').textContent=(S.bossWins?'🏆 ':'')+bossBestText();
 }
 function paintLevelUp(sel){
   var m=member(sel), btn=$('#levelUp'), sp=SPECIES[sel]||SPECIES[25];
@@ -765,6 +792,7 @@ function renderTeam(sel){
 }
 $('#modeNormal').addEventListener('click',function(){SFX.tap();S.mode='normal';save();paintMode();});
 $('#modeAdvanced').addEventListener('click',function(){SFX.tap();S.mode='advanced';save();paintMode();});
+$('#modeBoss').addEventListener('click',function(){SFX.tap();S.mode='boss';save();paintMode();});
 $('#levelUp').addEventListener('click',function(){
   var m=member(S.lastPick);
   if(!m||m.level>=10) return;
@@ -780,7 +808,7 @@ $('#levelUp').addEventListener('click',function(){
 $('#startRun').addEventListener('click',function(){SFX.tap();startRun(S.lastPick);});
 
 /* ---------- Run / battle ---------- */
-var Run=null,Foe=null,Cur=null,Phase='idle',seq=0,qStart=0,timerRaf=0,timerOn=false;
+var Run=null,Foe=null,Cur=null,Phase='idle',seq=0,qStart=0,timerRaf=0,timerOn=false,bossRaf=0,bossOn=false;
 function maxFactor(floor){return Math.min(12,2+Math.ceil(floor/2));} /* floor 1-2 => 3 … floor 19+ => 12 */
 /* 3.0s on floor 1, 5.0s from floor 19: 3000+(min(floor,19)-1)*(2000/18), rounded to 0.1s */
 function timerFor(floor){
@@ -818,10 +846,13 @@ function pickWild(floor){
   return id;
 }
 function startRun(id){
+  if(S.mode==='boss'){startBoss(id);return;}
   var sp=SPECIES[id];
   var lv=levelOf(id);
   var g=grownStats(sp,lv);
   S.runs++;S.lastPick=id;save();
+  stopBossClock();
+  $('#battle').classList.remove('bossmode');
   Run={
     monId:id,level:lv,hp:g.hp,maxHp:g.hp,atk:g.atk,floor:1,
     streak:0,bestStreak:0,lastFoe:0,kos:0,caught:0,xpEarned:0,
@@ -897,6 +928,36 @@ function setTimerVisual(p,ms){
   $('#timerNum').textContent=fmtSecs(p*ms);
 }
 function stopTimer(){timerOn=false;if(timerRaf){cancelAnimationFrame(timerRaf);timerRaf=0;}}
+function stopBossClock(){bossOn=false;if(bossRaf){cancelAnimationFrame(bossRaf);bossRaf=0;}}
+function paintBossClock(left){
+  var p=left<=0?0:left/BOSS_MS;
+  var fill=$('#timerFill');
+  fill.style.width=(Math.max(0,p)*100)+'%';
+  fill.classList.toggle('mid',p<=0.6&&p>0.3);
+  fill.classList.toggle('low',p<=0.3);
+  $('#timerNum').textContent=String(Math.max(0,Math.ceil(left/1000)));
+}
+function startBossClock(){
+  stopBossClock();
+  Run.bossStart=performance.now();
+  bossOn=true;
+  function frame(now){
+    if(!bossOn||!Run) return;
+    var left=BOSS_MS-(now-Run.bossStart);
+    if(left<=0){bossOn=false;paintBossClock(0);bossTimeUp();return;}
+    paintBossClock(left);
+    bossRaf=requestAnimationFrame(frame);
+  }
+  paintBossClock(BOSS_MS);
+  bossRaf=requestAnimationFrame(frame);
+}
+function noteBossScore(correct, elapsed, won){
+  if(!S.bossBest) S.bossBest={correct:0,winMs:0};
+  if(correct>S.bossBest.correct) S.bossBest.correct=correct;
+  if(won&&elapsed>0&&(!S.bossBest.winMs||elapsed<S.bossBest.winMs)) S.bossBest.winMs=elapsed;
+  if(won) S.bossWins=(S.bossWins||0)+1;
+  save();
+}
 function startTimer(ms,onDone,fillEl){
   stopTimer();
   var start=performance.now();
@@ -1159,6 +1220,137 @@ function onTimeout(){
   if(Phase!=='ask'||!Cur||Cur.mode!=='battle') return;
   Phase='lock';
   resolveMiss(null,true);
+}
+function startBoss(id){
+  var sp=SPECIES[id];
+  var lv=levelOf(id);
+  var g=grownStats(sp,lv);
+  var bossSp=SPECIES[BOSS_ID];
+  S.runs++;S.lastPick=id;save();
+  stopTimer();stopBossClock();clearTimers();
+  Run={
+    monId:id,level:lv,hp:g.hp,maxHp:g.hp,atk:g.atk,floor:1,
+    streak:0,bestStreak:0,lastFoe:BOSS_ID,kos:0,caught:0,xpEarned:0,
+    mode:'boss',potions:0,pendingMove:null,pp:{},moves:movesFor(sp),
+    bossCorrect:0,bossNeed:BOSS_NEED,bossMs:BOSS_MS,bossStart:0
+  };
+  Foe={id:BOSS_ID,sp:bossSp,boss:true,hp:100,maxHp:100,dmg:0,xpGiven:true};
+  $('#capOv').classList.remove('show','quizzing');
+  $('#potionBtn').hidden=true;
+  $('#battle').classList.add('bossmode');
+  $('#arena').classList.add('boss');
+  show('battle');
+  Phase='intro';
+  seq++;
+  var my=seq;
+  $('#floorPill').textContent='Boss';
+  $('#streakPill').textContent='0/50';
+  $('#foeName').textContent='Boss Mewtwo';
+  $('#foeTag').innerHTML='<span class="bossTag">BOSS</span>';
+  $('#meName').textContent=sp.n+' Lv.'+lv;
+  paintHp();
+  mountSprite($('#foeSlot'),BOSS_ID,false);
+  mountSprite($('#meSlot'),id,true);
+  $('#foeSlot').classList.remove('faint','hitflash','hitflashFast','lungeF');
+  $('#meSlot').classList.remove('faint','hitflash','lunge','lungeFast');
+  $('#battleMsg').textContent='Mewtwo blocks the way!';
+  $('#qText').textContent='Get ready!';
+  $('#qHint').textContent='50 right answers. One miss loses.';
+  $('#answers').innerHTML='';
+  paintBossClock(BOSS_MS);
+  SFX.whoosh();
+  later(function(){
+    if(seq!==my||Phase==='over') return;
+    startBossClock();
+    askBoss();
+  },260);
+}
+function askBoss(){
+  if(Phase==='over'||!Run||Run.mode!=='boss') return;
+  var k=takeFact(12,null), p=k.split('x'), a=+p[0], b=+p[1];
+  Cur={a:a,b:b,ans:a*b,mode:'boss',seq:++seq};
+  Phase='ask';
+  qStart=performance.now();
+  $('#qText').innerHTML=a+' × '+b+' = ?';
+  $('#qHint').textContent='One miss ends the battle.';
+  fillAnswers($('#answers'),onBossPick);
+}
+function onBossPick(v,btn){
+  if(!Cur||Cur.mode!=='boss'||Phase!=='ask') return;
+  if(v!==Cur.ans){
+    Phase='lock';
+    record(Cur.a,Cur.b,false,0);
+    if(btn) btn.classList.add('wrong');
+    showEquation();
+    glowCorrect($('#answers'));
+    $('#qHint').textContent=Cur.a+' × '+Cur.b+' = '+Cur.ans;
+    endBoss('wrong');
+    return;
+  }
+  Phase='lock';
+  record(Cur.a,Cur.b,true,performance.now()-qStart);
+  Run.bossCorrect++;
+  $('#streakPill').textContent=Run.bossCorrect+'/50';
+  if(btn) btn.classList.add('right');
+  Foe.hp=Math.max(0,Foe.hp-2);
+  paintHp();
+  SFX.hit();
+  restartAnim($('#meSlot'),'lungeFast');
+  restartAnim($('#foeSlot'),'hitflashFast');
+  var my=Cur.seq;
+  if(Run.bossCorrect>=BOSS_NEED){endBoss('win');return;}
+  later(function(){
+    if(Phase==='over'||!Cur||Cur.seq!==my) return;
+    askBoss();
+  },140);
+}
+function bossTimeUp(){
+  if(Phase==='over'||!Run||Run.mode!=='boss') return;
+  if(Run.bossCorrect>=BOSS_NEED){endBoss('win');return;}
+  endBoss('time');
+}
+function endBoss(kind){
+  if(!Run||Run.mode!=='boss'||Phase==='over') return;
+  Phase='over';
+  stopBossClock();
+  stopTimer();
+  clearTimers();
+  var elapsed=Run.bossStart?Math.max(0,Math.round(performance.now()-Run.bossStart)):0;
+  if(elapsed>BOSS_MS) elapsed=BOSS_MS;
+  var won=kind==='win';
+  if(won){
+    Run.xpEarned=BOSS_XP;
+    S.xp+=BOSS_XP;
+    SFX.fanfare();
+    restartAnim($('#foeSlot'),'faint');
+    $('#battleMsg').textContent='Mewtwo is defeated!';
+    $('#qHint').textContent='You did it!';
+  }else{
+    Run.xpEarned=0;
+    SFX.faint();
+  }
+  noteBossScore(Run.bossCorrect,elapsed,won);
+  var fact=Cur?{a:Cur.a,b:Cur.b,ans:Cur.ans}:null;
+  later(function(){showBossOver(kind,elapsed,fact);},won?460:300);
+}
+function showBossOver(kind,elapsed,fact){
+  Phase='over';
+  var won=kind==='win';
+  var why;
+  if(won) why=(S.bossWins<=1?'You earned the Boss badge.':'The legend falls again.')+' +'+BOSS_XP+' XP.';
+  else if(kind==='time') why='The 60 second clock hit zero.'+(fact?(' Last one was '+fact.a+' × '+fact.b+' = '+fact.ans+'.'):'');
+  else why='One wrong answer ends it. '+fact.a+' × '+fact.b+' = '+fact.ans+'.';
+  $('#overTitle').textContent=won?'Mewtwo is defeated!':(kind==='time'?'Time ran out!':'Mewtwo wins');
+  $('#overText').textContent=why;
+  mountSprite($('#overSprite'),won?Run.monId:BOSS_ID,false);
+  $('#overStats').innerHTML=
+    '<div class="stat">Correct '+(won?BOSS_NEED:Run.bossCorrect)+'/50</div>'+
+    '<div class="stat">Time '+(elapsed/1000).toFixed(1)+'s</div>'+
+    '<div class="stat">'+bossBestText()+'</div>'+
+    '<div class="stat">XP earned '+(Run.xpEarned||0)+'</div>'+
+    '<div class="stat">Total XP '+S.xp+'</div>'+
+    '<div class="stat">'+(S.bossWins?'🏆 Boss badge':'No badge yet')+'</div>';
+  show('over');
 }
 function showEquation(){
   $('#qText').innerHTML=Cur.a+' × '+Cur.b+' = <span class="ans">'+Cur.ans+'</span>';
@@ -1516,8 +1708,9 @@ function renderParent(){
   h+='<div class="pcard"><b>'+S.xp+'</b><span>XP saved</span></div>';
   h+='<div class="pcard"><b>'+S.team.length+'</b><span>Pokémon on the team</span></div>';
   h+='<div class="pcard"><b>'+S.runs+'</b><span>runs started</span></div>';
+  h+='<div class="pcard"><b>'+bossBestText()+'</b><span>boss best'+(S.bossWins?(' · '+S.bossWins+' win'+(S.bossWins===1?'':'s')):'')+'</span></div>';
   h+='</div>';
-  h+='<div class="psec"><h3>Team</h3><div>'+names+'</div><p style="margin:8px 0 0;font-size:13px;color:#667">The timer starts at 3 seconds and grows to 5 seconds on deeper floors. 3 × 4 and 4 × 3 are practiced separately. A fact answered correctly waits until every fact in the current range has been answered, then that range starts over. Missed facts come back soon. Advanced mode adds four moves, types, and two Potions each run. XP from wins can level up a partner between runs.</p></div>';
+  h+='<div class="psec"><h3>Team</h3><div>'+names+'</div><p style="margin:8px 0 0;font-size:13px;color:#667">The timer starts at 3 seconds and grows to 5 seconds on deeper floors. 3 × 4 and 4 × 3 are practiced separately. A fact answered correctly waits until every fact in the current range has been answered, then that range starts over. Missed facts come back soon. Advanced mode adds four moves, types, and two Potions each run. Boss mode is 50 correct answers in 60 seconds against Mewtwo, using the full 0–12 deck. Any miss ends it. A win pays a big XP bonus and earns the Boss badge. XP from wins can level up a partner between runs.</p></div>';
   h+='<div class="psec"><h3>Fact mastery · 0–12</h3><div class="gridwrap"><div class="grid13"><div class="h">×</div>';
   for(var c=0;c<=12;c++) h+='<div class="h">'+c+'</div>';
   for(var a=0;a<=12;a++){
@@ -1546,7 +1739,7 @@ function renderParent(){
     h+='</ol>';
   }
   h+='</div>';
-  h+='<div class="psec"><h3>Reset</h3><p style="margin:0 0 10px;font-size:14px">Start fresh. Pikachu stays at level 1. Caught Pokémon, XP, levels, the question deck, the best floor, and stats are erased.</p><button id="resetBtn" type="button">Reset all progress…</button></div>';
+  h+='<div class="psec"><h3>Reset</h3><p style="margin:0 0 10px;font-size:14px">Start fresh. Pikachu stays at level 1. Caught Pokémon, XP, levels, the question deck, the best floor, Boss Mode scores, and stats are erased.</p><button id="resetBtn" type="button">Reset all progress…</button></div>';
   $('#parentBody').innerHTML=h;
   $('#resetBtn').addEventListener('click',function(){$('#confirmOv').classList.add('show');});
 }
