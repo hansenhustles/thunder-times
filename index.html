@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Thunder Times">
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#3a2370">
-<meta name="thunder-times-version" content="2">
+<meta name="thunder-times-version" content="3">
 <meta name="description" content="Pikachu's Thunder Times — a kids' times-tables dungeon crawler.">
 <title>Pikachu's Thunder Times</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%23ffd21f'/%3E%3Cpath%20d='M36%206%20L14%2036%20h16%20L26%2058%20L50%2026%20H34z'%20fill='%233b2a10'/%3E%3C/svg%3E">
@@ -74,7 +74,16 @@ input{font-family:inherit;}
 .tcard img,.tcard .fallback{width:96px;height:96px;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;margin:0 auto}
 .tcard .nm{font-size:18px}
 .tcard .sub{font-size:13px;opacity:.75}
-#startRun{align-self:center;margin:8px auto 12px;min-width:min(92vw,420px)}
+.modeRow{display:flex;gap:8px;align-items:center;padding:0 12px 4px;flex:none}
+.modeBtn{flex:1;max-width:240px;padding:10px 8px;border-radius:16px;font-weight:900;font-size:clamp(15px,2.2vh,18px);background:rgba(255,255,255,.16);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.22)}
+.modeBtn.on{background:#ffd21f;color:#3b2a10}
+.modeHint{margin:0;padding:0 14px 8px;color:#ffe9a8;font-weight:800;font-size:14px;text-align:center;flex:none}
+.teamfoot{flex:none;display:flex;flex-direction:column;gap:8px;align-items:center;padding:0 12px 12px}
+#levelUp,#startRun{width:min(92vw,420px);margin:0;white-space:normal;line-height:1.15}
+.ansBtn.moveBtn{font-size:clamp(13px,2.15vh,20px);line-height:1.12;padding:4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-shadow:0 2px 0 rgba(0,0,0,.28)}
+.ansBtn.moveBtn small{font-size:.75em;font-weight:800}
+.ansBtn.moveBtn.dark{color:#3b2a10;text-shadow:none}
+#potionBtn{font-size:clamp(14px,2vh,18px);padding:6px 10px}
 
 /* Battle */
 #battle{background:linear-gradient(#241448,#3a2370);}
@@ -121,7 +130,7 @@ input{font-family:inherit;}
 #timerFill{display:block;height:100%;width:100%;background:linear-gradient(#b6ff8a,#2fbf71);border-radius:inherit}
 #timerFill.mid{background:linear-gradient(#ffe082,#ff9f1c)}
 #timerFill.low{background:linear-gradient(#ffab91,#e53935)}
-#timerNum{color:#fff;min-width:2.2ch;text-align:right;font-size:clamp(16px,2.6vh,22px);text-shadow:0 2px 0 #241448}
+#timerNum{color:#fff;min-width:4.2ch;text-align:right;font-size:clamp(16px,2.6vh,22px);text-shadow:0 2px 0 #241448}
 .answers{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px}
 .ansBtn{height:100%;min-height:64px;font-size:clamp(28px,6vh,58px);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.25);font-variant-numeric:tabular-nums}
 .ansBtn.long{font-size:clamp(22px,4.6vh,44px)}
@@ -227,7 +236,7 @@ input{font-family:inherit;}
 }
 </style>
 </head>
-<body data-version="2">
+<body data-version="3">
 
 <section id="title" class="screen active">
   <div class="corner">
@@ -249,8 +258,17 @@ input{font-family:inherit;}
     <button class="iconbtn muteBtn" type="button" aria-label="Sound">🔊</button>
     <button class="iconbtn gearBtn" type="button" aria-label="Parent settings">⚙️</button>
   </div>
+  <div class="modeRow">
+    <button class="modeBtn on" id="modeNormal" type="button">Normal</button>
+    <button class="modeBtn" id="modeAdvanced" type="button">Advanced</button>
+    <div class="pill" id="xpPill">0 XP</div>
+  </div>
+  <p class="modeHint" id="modeHint">Tap the right answer to attack.</p>
   <div class="scroll"><div class="teamgrid" id="teamGrid"></div></div>
-  <button id="startRun" class="bigbtn g chunky" type="button">Start the dungeon</button>
+  <div class="teamfoot">
+    <button id="levelUp" class="bigbtn o chunky" type="button">Level up</button>
+    <button id="startRun" class="bigbtn g chunky" type="button">Start the dungeon</button>
+  </div>
 </section>
 
 <section id="battle" class="screen">
@@ -258,6 +276,7 @@ input{font-family:inherit;}
     <div class="pill" id="floorPill">Floor 1</div>
     <div class="spacer"></div>
     <div class="pill" id="streakPill">🔥 0</div>
+    <button class="pill" id="potionBtn" type="button" hidden>🧪 2</button>
     <button class="iconbtn muteBtn" type="button" aria-label="Sound">🔊</button>
   </div>
   <div class="bbody">
@@ -331,7 +350,7 @@ input{font-family:inherit;}
 
 <div id="confirmOv"><div class="dialog">
   <h3>Erase all progress?</h3>
-  <p>This clears the team (Pikachu stays), the best floor, and every practice stat. It can't be undone.</p>
+  <p>This clears the team (Pikachu stays), XP, levels, the question deck, the best floor, and every practice stat. It can't be undone.</p>
   <div class="btnrow">
     <button class="bigbtn gray" id="cfNo" type="button">Keep it</button>
     <button class="bigbtn r" id="cfYes" type="button">Yes, erase</button>
@@ -414,7 +433,48 @@ var BOSSES=[95,130,143,6,9,3,149,150,144,145,146,151];
 var TYPE_COLOR={
   Normal:'#a8a878',Electric:'#f8d030',Fire:'#f08030',Water:'#6890f0',Grass:'#78c850',
   Bug:'#a8b820',Flying:'#a890f0',Poison:'#a040a0',Ground:'#e0c068',Rock:'#b8a038',
-  Psychic:'#f85888',Ice:'#98d8d8',Fighting:'#c03028',Ghost:'#705898',Dragon:'#7038f8',Fairy:'#ee99ac'
+  Psychic:'#f85888',Ice:'#98d8d8',Fighting:'#c03028',Ghost:'#705898',Dragon:'#7038f8',
+  Fairy:'#ee99ac',Steel:'#b8b8d0',Dark:'#705848'
+};
+var LIGHT_TYPE={Electric:1,Ice:1,Fairy:1,Normal:1,Ground:1,Rock:1,Steel:1,Bug:1,Grass:1,Flying:1};
+/* Dual types. Primary type on the species stays for the fallback badge color. */
+var DUAL={
+  16:['Normal','Flying'],21:['Normal','Flying'],18:['Normal','Flying'],
+  13:['Bug','Poison'],
+  41:['Poison','Flying'],
+  43:['Grass','Poison'],69:['Grass','Poison'],1:['Grass','Poison'],3:['Grass','Poison'],
+  74:['Rock','Ground'],
+  39:['Normal','Fairy'],
+  81:['Electric','Steel'],
+  92:['Ghost','Poison'],93:['Ghost','Poison'],94:['Ghost','Poison'],
+  123:['Bug','Flying'],
+  6:['Fire','Flying'],
+  130:['Water','Flying'],
+  149:['Dragon','Flying'],
+  145:['Electric','Flying'],
+  146:['Fire','Flying'],
+  144:['Ice','Flying']
+};
+/* Standard type chart: only non-1 matchups. */
+var CHART={
+  Normal:{Rock:0.5,Ghost:0,Steel:0.5},
+  Fire:{Fire:0.5,Water:0.5,Grass:2,Ice:2,Bug:2,Rock:0.5,Dragon:0.5,Steel:2},
+  Water:{Fire:2,Water:0.5,Grass:0.5,Ground:2,Rock:2,Dragon:0.5},
+  Electric:{Water:2,Electric:0.5,Grass:0.5,Ground:0,Flying:2,Dragon:0.5},
+  Grass:{Fire:0.5,Water:2,Grass:0.5,Poison:0.5,Ground:2,Flying:0.5,Bug:0.5,Rock:2,Dragon:0.5,Steel:0.5},
+  Ice:{Fire:0.5,Water:0.5,Grass:2,Ice:0.5,Ground:2,Flying:2,Dragon:2,Steel:2},
+  Fighting:{Normal:2,Ice:2,Poison:0.5,Flying:0.5,Psychic:0.5,Bug:0.5,Rock:2,Ghost:0,Dark:2,Steel:2,Fairy:0.5},
+  Poison:{Grass:2,Poison:0.5,Ground:0.5,Rock:0.5,Ghost:0.5,Steel:0,Fairy:2},
+  Ground:{Fire:2,Electric:2,Grass:0.5,Poison:2,Flying:0,Bug:0.5,Rock:2,Steel:2},
+  Flying:{Electric:0.5,Grass:2,Fighting:2,Bug:2,Rock:0.5,Steel:0.5},
+  Psychic:{Fighting:2,Poison:2,Psychic:0.5,Dark:0,Steel:0.5},
+  Bug:{Fire:0.5,Grass:2,Fighting:0.5,Poison:0.5,Flying:0.5,Psychic:2,Ghost:0.5,Dark:2,Steel:0.5,Fairy:0.5},
+  Rock:{Fire:2,Ice:2,Fighting:0.5,Ground:0.5,Flying:2,Bug:2,Steel:0.5},
+  Ghost:{Normal:0,Psychic:2,Ghost:2,Dark:0.5},
+  Dragon:{Dragon:2,Steel:0.5,Fairy:0},
+  Dark:{Fighting:0.5,Psychic:2,Ghost:2,Dark:0.5,Fairy:0.5},
+  Steel:{Fire:0.5,Water:0.5,Electric:0.5,Ice:2,Rock:2,Steel:0.5,Fairy:2},
+  Fairy:{Fire:0.5,Fighting:2,Poison:0.5,Dragon:2,Dark:2,Steel:0.5}
 };
 var SPECIES={};
 RAW.forEach(function(r){
@@ -423,32 +483,74 @@ RAW.forEach(function(r){
 var SPRITE='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 var KEY='thunder-times-v2';
 
-function defaults(){return {v:2,muted:false,team:[25],bestFloor:0,facts:{},answered:0,runs:0,lastPick:25};}
+function defaults(){
+  return {v:3,muted:false,team:[{id:25,level:1}],bestFloor:0,facts:{},answered:0,runs:0,lastPick:25,xp:0,mode:'normal',deck:{max:0,remaining:[],last:''}};
+}
+function factStat(f){
+  return {r:Math.max(0,Math.floor(+f.r||0)),w:Math.max(0,Math.floor(+f.w||0)),t:Math.max(0,Math.floor(+f.t||0))};
+}
 function sanitize(s){
   var d=defaults();
-  if(!s||s.v!==2) return d;
+  if(!s||(s.v!==2&&s.v!==3)) return d;
   d.muted=!!s.muted;
   d.bestFloor=Math.max(0,Math.floor(+s.bestFloor||0));
   d.answered=Math.max(0,Math.floor(+s.answered||0));
   d.runs=Math.max(0,Math.floor(+s.runs||0));
-  var team=[];
+  d.xp=Math.max(0,Math.floor(+s.xp||0));
+  d.mode=s.mode==='advanced'?'advanced':'normal';
+  var team=[], seen={};
   if(Array.isArray(s.team)){
-    s.team.forEach(function(id){
-      id=+id;
-      if(SPECIES[id]&&team.indexOf(id)<0) team.push(id);
+    s.team.forEach(function(item){
+      var id, level;
+      if(item&&typeof item==='object'){
+        id=+item.id;
+        level=Math.max(1,Math.min(10,Math.floor(+item.level||1)));
+      }else{
+        id=+item;
+        level=1;
+      }
+      if(!SPECIES[id]||seen[id]) return;
+      seen[id]=1;
+      team.push({id:id,level:level});
     });
   }
-  if(team.indexOf(25)<0) team.unshift(25);
+  if(!seen[25]) team.unshift({id:25,level:1});
   d.team=team;
   d.lastPick=SPECIES[+s.lastPick]?+s.lastPick:25;
-  if(d.team.indexOf(d.lastPick)<0) d.lastPick=25;
+  if(!d.team.some(function(m){return m.id===d.lastPick;})) d.lastPick=d.team[0].id;
   if(s.facts&&typeof s.facts==='object'){
     Object.keys(s.facts).forEach(function(k){
       if(!/^\d{1,2}x\d{1,2}$/.test(k)) return;
       var f=s.facts[k];
       if(!f||typeof f!=='object') return;
-      d.facts[k]={r:Math.max(0,Math.floor(+f.r||0)),w:Math.max(0,Math.floor(+f.w||0)),t:Math.max(0,Math.floor(+f.t||0))};
+      var parts=k.split('x'), a=+parts[0], b=+parts[1];
+      if(a>12||b>12) return;
+      var st=factStat(f);
+      if(s.v===2){
+        /* Old saves stored each pair once (smaller factor first). Keep both orders. */
+        d.facts[a+'x'+b]={r:st.r,w:st.w,t:st.t};
+        if(a!==b) d.facts[b+'x'+a]={r:st.r,w:st.w,t:st.t};
+      }else{
+        d.facts[a+'x'+b]=st;
+      }
     });
+  }
+  if(s.v===3&&s.deck&&typeof s.deck==='object'){
+    var max=Math.max(0,Math.min(12,Math.floor(+s.deck.max||0)));
+    var rem=[];
+    if(Array.isArray(s.deck.remaining)){
+      s.deck.remaining.forEach(function(k){
+        if(typeof k!=='string'||!/^\d{1,2}x\d{1,2}$/.test(k)) return;
+        var p=k.split('x');
+        if(+p[0]<=12&&+p[1]<=12) rem.push((+p[0])+'x'+(+p[1]));
+      });
+    }
+    var last='';
+    if(typeof s.deck.last==='string'&&/^\d{1,2}x\d{1,2}$/.test(s.deck.last)){
+      var lp=s.deck.last.split('x');
+      if(+lp[0]<=12&&+lp[1]<=12) last=(+lp[0])+'x'+(+lp[1]);
+    }
+    d.deck={max:max,remaining:rem,last:last};
   }
   return d;
 }
@@ -459,12 +561,88 @@ function load(){
 var S=load();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
-function fkey(a,b){return Math.min(a,b)+'x'+Math.max(a,b);}
 function record(a,b,ok,ms){
-  var k=fkey(a,b),f=S.facts[k]||(S.facts[k]={r:0,w:0,t:0});
-  if(ok){f.r++;f.t+=Math.min(ms,30000);}else f.w++;
+  var k=a+'x'+b, f=S.facts[k]||(S.facts[k]={r:0,w:0,t:0});
+  if(ok){f.r++;f.t+=Math.min(ms|0,30000);}else f.w++;
   S.answered++;
-  save();
+  if(ok){ensureDeck();S.deck.last=k;save();}
+  else missFact(a,b);
+}
+function member(id){
+  id=+id;
+  for(var i=0;i<S.team.length;i++) if(S.team[i].id===id) return S.team[i];
+  return null;
+}
+function levelOf(id){var m=member(id);return m?m.level:1;}
+function typesOf(sp){
+  if(!sp) return ['Normal'];
+  return DUAL[sp.id]?DUAL[sp.id].slice():[sp.type];
+}
+function effectiveness(moveType, defTypes){
+  var row=CHART[moveType]||{}, m=1;
+  (defTypes||[]).forEach(function(t){if(row[t]!=null) m*=row[t];});
+  return m;
+}
+function effText(eff){
+  if(eff===0) return "It doesn't affect the foe!";
+  if(eff>=2) return 'Super effective!';
+  if(eff>0&&eff<1) return 'Not very effective...';
+  return '';
+}
+function grownStats(sp, level){
+  level=Math.max(1,Math.min(10,level||1));
+  return {
+    hp:Math.max(1,Math.round(sp.hp*(1+0.14*(level-1)))),
+    atk:Math.max(1,Math.round(sp.atk*(1+0.12*(level-1))))
+  };
+}
+function levelCost(level){return 15+level*20;}
+function xpGain(floor, boss){
+  var x=8+floor*4;
+  if(boss) x=Math.round(x*1.75);
+  return x;
+}
+function mv(n,t,p,pp){return {n:n,type:t,power:p,pp:pp};}
+function copyMove(m){return {n:m.n,type:m.type,power:m.power,pp:m.pp};}
+var PIKA=[mv('Thunder Shock','Electric',40,30),mv('Quick Attack','Normal',40,30),mv('Thunderbolt','Electric',90,15),mv('Iron Tail','Steel',100,15)];
+var TYPE_KIT={
+  Normal:[mv('Tackle','Normal',40,35),mv('Quick Attack','Normal',40,30),mv('Swift','Normal',60,20),mv('Body Slam','Normal',85,15)],
+  Electric:[mv('Thunder Shock','Electric',40,30),mv('Quick Attack','Normal',40,30),mv('Spark','Electric',65,20),mv('Thunderbolt','Electric',90,15)],
+  Fire:[mv('Ember','Fire',40,25),mv('Fire Fang','Fire',65,15),mv('Flame Wheel','Fire',60,25),mv('Flamethrower','Fire',90,15)],
+  Water:[mv('Bubble','Water',40,30),mv('Water Gun','Water',40,25),mv('Flail','Water',70,15),mv('Hydro Pump','Water',110,5)],
+  Grass:[mv('Absorb','Grass',20,25),mv('Vine Whip','Grass',45,25),mv('Razor Leaf','Grass',55,25),mv('Solar Beam','Grass',120,10)],
+  Bug:[mv('Poison Sting','Poison',15,35),mv('Tackle','Normal',40,35),mv('Bug Bite','Bug',60,20),mv('X-Scissor','Bug',80,15)],
+  Flying:[mv('Gust','Flying',40,35),mv('Peck','Flying',35,35),mv('Wing Attack','Flying',60,35),mv('Hurricane','Flying',110,10)],
+  Poison:[mv('Poison Sting','Poison',15,35),mv('Bite','Dark',60,25),mv('Sludge','Poison',65,20),mv('Sludge Bomb','Poison',90,10)],
+  Ground:[mv('Mud-Slap','Ground',20,10),mv('Scratch','Normal',40,35),mv('Bone Club','Ground',65,20),mv('Dig','Ground',80,10)],
+  Rock:[mv('Tackle','Normal',40,35),mv('Rock Throw','Rock',50,15),mv('Rock Slide','Rock',75,10),mv('Stone Edge','Rock',100,5)],
+  Fairy:[mv('Pound','Normal',40,35),mv('Disarming Voice','Fairy',40,15),mv('Dazzling Gleam','Fairy',80,10),mv('Play Rough','Fairy',90,10)],
+  Ghost:[mv('Lick','Ghost',30,30),mv('Night Shade','Ghost',50,15),mv('Sucker Punch','Dark',70,5),mv('Shadow Ball','Ghost',80,15)],
+  Fighting:[mv('Rock Smash','Fighting',40,15),mv('Karate Chop','Fighting',50,25),mv('Strength','Normal',80,15),mv('Cross Chop','Fighting',100,5)],
+  Psychic:[mv('Confusion','Psychic',50,25),mv('Psybeam','Psychic',65,20),mv('Swift','Normal',60,20),mv('Psychic','Psychic',90,10)],
+  Dragon:[mv('Twister','Dragon',40,20),mv('Slam','Normal',80,20),mv('Dragon Claw','Dragon',80,15),mv('Dragon Rush','Dragon',100,10)],
+  Ice:[mv('Powder Snow','Ice',40,25),mv('Gust','Flying',40,35),mv('Ice Beam','Ice',90,10),mv('Blizzard','Ice',110,5)]
+};
+var MOVE_TYPE={
+  Tackle:'Normal','Quick Attack':'Normal',Swift:'Normal','Body Slam':'Normal',Scratch:'Normal',Pound:'Normal',Slash:'Normal','Vise Grip':'Normal',Strength:'Normal',
+  'Thunder Shock':'Electric',Thunderbolt:'Electric','Thunder Punch':'Electric',Spark:'Electric',
+  Ember:'Fire','Fire Fang':'Fire','Flame Wheel':'Fire',Flamethrower:'Fire',
+  Bubble:'Water','Water Gun':'Water',Flail:'Water','Hydro Pump':'Water',
+  Absorb:'Grass','Vine Whip':'Grass','Razor Leaf':'Grass','Solar Beam':'Grass',
+  'Bug Bite':'Bug','Poison Sting':'Poison','X-Scissor':'Bug','Leech Life':'Bug',
+  Gust:'Flying',Peck:'Flying','Wing Attack':'Flying',Hurricane:'Flying',
+  'Rock Throw':'Rock',Dig:'Ground','Bone Club':'Ground',
+  Lick:'Ghost','Night Shade':'Ghost','Shadow Ball':'Ghost',
+  'Karate Chop':'Fighting',Confusion:'Psychic',Psybeam:'Psychic',Psychic:'Psychic',Metronome:'Psychic',
+  Twister:'Dragon','Dragon Claw':'Dragon','Ice Beam':'Ice','Iron Tail':'Steel'
+};
+function movesFor(sp){
+  if(sp.id===25) return PIKA.map(copyMove);
+  var src=TYPE_KIT[sp.type]||TYPE_KIT.Normal;
+  var list=src.map(copyMove), i, found=false;
+  for(i=0;i<list.length;i++) if(list[i].n===sp.move) found=true;
+  if(!found) list[2]={n:sp.move,type:MOVE_TYPE[sp.move]||sp.type,power:list[2].power,pp:list[2].pp};
+  return list;
 }
 
 /* Audio — context starts after the first tap */
@@ -546,33 +724,71 @@ var returnTo='title';
 function paintBest(){$('#bestPill').textContent=S.bestFloor?('Best floor '+S.bestFloor):'Best floor —';}
 $('#playBtn').addEventListener('click',function(){SFX.tap();openTeam();});
 $('#teamBack').addEventListener('click',function(){SFX.tap();show('title');paintBest();});
+function paintMode(){
+  var adv=S.mode==='advanced';
+  $('#modeNormal').classList.toggle('on',!adv);
+  $('#modeAdvanced').classList.toggle('on',adv);
+  $('#modeHint').textContent=adv?'Pick a move, then solve it to attack.':'Tap the right answer to attack.';
+  $('#startRun').textContent=adv?'Start advanced run':'Start the dungeon';
+  $('#xpPill').textContent=S.xp+' XP';
+}
+function paintLevelUp(sel){
+  var m=member(sel), btn=$('#levelUp'), sp=SPECIES[sel]||SPECIES[25];
+  if(!m){btn.disabled=true;btn.textContent='Level up';return;}
+  if(m.level>=10){btn.disabled=true;btn.textContent=sp.n+' is max level';return;}
+  var cost=levelCost(m.level);
+  btn.textContent='Level up '+sp.n+' · '+cost+' XP';
+  btn.disabled=S.xp<cost;
+}
 function openTeam(){
-  var pick=S.team.indexOf(S.lastPick)>=0?S.lastPick:S.team[0];
+  var pick=member(S.lastPick)?S.lastPick:S.team[0].id;
   renderTeam(pick);
   show('team');
 }
 function renderTeam(sel){
   var g=$('#teamGrid');g.innerHTML='';
-  S.team.forEach(function(id){
-    var sp=SPECIES[id],b=document.createElement('button');
+  S.team.forEach(function(m){
+    var id=m.id, sp=SPECIES[id], gstat=grownStats(sp,m.level), b=document.createElement('button');
     b.type='button';
     b.className='tcard'+(id===sel?' sel':'');
     b.innerHTML='<div class="slot"></div><div class="nm"></div><div class="sub"></div><div class="sub"></div>';
     mountSprite(b.querySelector('.slot'),id,false);
-    b.querySelector('.nm').textContent=sp.n;
-    b.querySelectorAll('.sub')[0].textContent=sp.type+' · HP '+sp.hp;
-    b.querySelectorAll('.sub')[1].textContent=sp.move+' · ATK '+sp.atk;
+    b.querySelector('.nm').textContent=sp.n+'  Lv.'+m.level;
+    b.querySelectorAll('.sub')[0].textContent=typesOf(sp).join(' / ');
+    b.querySelectorAll('.sub')[1].textContent='HP '+gstat.hp+' · ATK '+gstat.atk;
     b.addEventListener('click',function(){SFX.tap();renderTeam(id);});
     g.appendChild(b);
   });
   S.lastPick=sel;
+  paintMode();
+  paintLevelUp(sel);
 }
+$('#modeNormal').addEventListener('click',function(){SFX.tap();S.mode='normal';save();paintMode();});
+$('#modeAdvanced').addEventListener('click',function(){SFX.tap();S.mode='advanced';save();paintMode();});
+$('#levelUp').addEventListener('click',function(){
+  var m=member(S.lastPick);
+  if(!m||m.level>=10) return;
+  var cost=levelCost(m.level);
+  if(S.xp<cost) return;
+  S.xp-=cost;
+  m.level++;
+  save();
+  SFX.heal();
+  toast(SPECIES[m.id].n+' grew to Lv.'+m.level+'!');
+  renderTeam(m.id);
+});
 $('#startRun').addEventListener('click',function(){SFX.tap();startRun(S.lastPick);});
 
 /* ---------- Run / battle ---------- */
 var Run=null,Foe=null,Cur=null,Phase='idle',seq=0,qStart=0,timerRaf=0,timerOn=false;
 function maxFactor(floor){return Math.min(12,2+Math.ceil(floor/2));} /* floor 1-2 => 3 … floor 19+ => 12 */
-function timerFor(){return 3000;}
+/* 3.0s on floor 1, 5.0s from floor 19: 3000+(min(floor,19)-1)*(2000/18), rounded to 0.1s */
+function timerFor(floor){
+  var f=Math.max(1,Math.floor(floor||1));
+  var ms=3000+(Math.min(f,19)-1)*(2000/18);
+  return Math.round(ms/100)*100;
+}
+function fmtSecs(ms){return (Math.max(0,ms)/1000).toFixed(1);}
 function foeHpFor(floor,boss,sp){
   var hp=16+(floor-1)*3;
   if(boss) hp=Math.round(hp*1.65);
@@ -603,15 +819,25 @@ function pickWild(floor){
 }
 function startRun(id){
   var sp=SPECIES[id];
+  var lv=levelOf(id);
+  var g=grownStats(sp,lv);
   S.runs++;S.lastPick=id;save();
   Run={
-    monId:id,hp:sp.hp,maxHp:sp.hp,atk:sp.atk,floor:1,
-    streak:0,bestStreak:0,retries:[],lastFoe:0,kos:0,caught:0
+    monId:id,level:lv,hp:g.hp,maxHp:g.hp,atk:g.atk,floor:1,
+    streak:0,bestStreak:0,lastFoe:0,kos:0,caught:0,xpEarned:0,
+    mode:S.mode==='advanced'?'advanced':'normal',
+    potions:S.mode==='advanced'?2:0,
+    pendingMove:null,pp:{},moves:movesFor(sp)
   };
   clearTimers();stopTimer();
   $('#capOv').classList.remove('show','quizzing');
+  $('#potionBtn').hidden=true;
   show('battle');
   beginFloor();
+}
+function resetPP(){
+  Run.pp={};
+  Run.moves.forEach(function(m){Run.pp[m.n]=m.pp;});
 }
 function beginFloor(){
   clearTimers();
@@ -629,7 +855,7 @@ function beginFloor(){
   $('#arena').classList.toggle('boss',boss);
   $('#foeName').textContent=(boss?'Boss ':'Wild ')+sp.n;
   $('#foeTag').innerHTML=boss?'<span class="bossTag">BOSS</span>':'';
-  $('#meName').textContent=SPECIES[Run.monId].n;
+  $('#meName').textContent=SPECIES[Run.monId].n+' Lv.'+Run.level;
   paintHp();
   mountSprite($('#foeSlot'),id,false);
   mountSprite($('#meSlot'),Run.monId,true);
@@ -641,8 +867,14 @@ function beginFloor(){
   $('#answers').innerHTML='';
   setTimerVisual(1,timerFor(Run.floor));
   updateStreak();
+  resetPP();
+  paintPotion();
   SFX.whoosh();
-  later(function(){if(seq===my) ask('battle');},boss?900:700);
+  later(function(){
+    if(seq!==my) return;
+    if(Run.mode==='advanced') showMoves();
+    else ask('battle');
+  },boss?900:700);
 }
 function paintHp(){
   function bar(fill,barEl,numEl,hp,max){
@@ -662,7 +894,7 @@ function setTimerVisual(p,ms){
   fill.style.width=(Math.max(0,p)*100)+'%';
   fill.classList.toggle('mid',p<=0.6&&p>0.3);
   fill.classList.toggle('low',p<=0.3);
-  $('#timerNum').textContent=Math.max(0,Math.ceil(p*(ms/1000)));
+  $('#timerNum').textContent=fmtSecs(p*ms);
 }
 function stopTimer(){timerOn=false;if(timerRaf){cancelAnimationFrame(timerRaf);timerRaf=0;}}
 function startTimer(ms,onDone,fillEl){
@@ -681,56 +913,116 @@ function startTimer(ms,onDone,fillEl){
     if(custom){
       fill.style.background=p<=0.3?'#e53935':(p<=0.6?'#ff9f1c':'#2fbf71');
       var capSecs=$('#capSecs');
-      if(capSecs) capSecs.textContent=Math.max(0,Math.ceil(left/1000))+'s';
+      if(capSecs) capSecs.textContent=fmtSecs(left)+'s';
     }else{
       fill.classList.toggle('mid',p<=0.6&&p>0.3);
       fill.classList.toggle('low',p<=0.3);
-      num.textContent=String(Math.max(0,Math.ceil(left/1000)));
+      num.textContent=fmtSecs(left);
     }
     if(left<=0){timerOn=false;onDone();return;}
     timerRaf=requestAnimationFrame(frame);
   }
   timerRaf=requestAnimationFrame(frame);
 }
-function noteMiss(a,b){
-  var key=a+'~'+b;
-  if(Run.retries.some(function(r){return r.key===key;})) return;
-  Run.retries.push({a:a,b:b,key:key,wait:2});
+/* Shuffled deck of ordered facts (3×4 and 4×3 are different). A correct
+   answer leaves the card out until this factor pool is finished. */
+function ensureDeck(){
+  if(!S.deck||typeof S.deck!=='object'||!Array.isArray(S.deck.remaining)) S.deck={max:0,remaining:[],last:''};
+  if(typeof S.deck.last!=='string') S.deck.last='';
+  S.deck.max=Math.max(0,Math.min(12,Math.floor(+S.deck.max||0)));
 }
-function nextFact(){
-  Run.retries.forEach(function(r){r.wait=Math.max(0,r.wait-1);});
-  if(Math.random()<0.8){
-    for(var i=0;i<Run.retries.length;i++){
-      if(Run.retries[i].wait<=0) return Run.retries.splice(i,1)[0];
-    }
-  }
-  var maxF=maxFactor(Run.floor);
-  var weak=[];
-  Object.keys(S.facts).forEach(function(k){
-    var f=S.facts[k],parts=k.split('x'),a=+parts[0],b=+parts[1];
-    if(a>maxF||b>maxF) return;
-    if(f.w>f.r) weak.push({a:a,b:b});
-  });
-  var a,b,guard=0;
-  do{
-    if(weak.length&&Math.random()<0.4){
-      var w=weak[rnd(weak.length)];
-      a=w.a;b=w.b;
-      if(Math.random()<0.5){var tmp=a;a=b;b=tmp;}
-    }else{
-      a=rollFactor(maxF);b=rollFactor(maxF);
-    }
-    guard++;
-  }while(guard<6&&Run.lastKey===fkey(a,b)&&maxF>1);
-  Run.lastKey=fkey(a,b);
-  return {a:a,b:b};
+function allFacts(maxF){
+  var out=[],a,b;
+  for(a=0;a<=maxF;a++) for(b=0;b<=maxF;b++) out.push(a+'x'+b);
+  return out;
 }
-function rollFactor(maxF){
-  if(maxF>=3&&Math.random()<0.5){
-    var lo=Math.max(0,maxF-2);
-    return lo+rnd(maxF-lo+1);
+function inPoolKey(k,maxF){
+  var p=k.split('x');
+  return +p[0]>=0&&+p[1]>=0&&+p[0]<=maxF&&+p[1]<=maxF;
+}
+function bandOk(k,maxF,band){
+  if(!band) return true;
+  var p=k.split('x'), hi=Math.max(+p[0],+p[1]);
+  if(band==='easy') return hi<=Math.max(2,Math.ceil(maxF*0.5));
+  if(band==='hard') return hi>=Math.max(0,maxF-2);
+  return true;
+}
+function widenDeck(maxF){
+  ensureDeck();
+  maxF=Math.max(0,Math.min(12,maxF|0));
+  if(S.deck.max>=maxF) return;
+  if(S.deck.max<=0){
+    S.deck.max=maxF;
+    S.deck.remaining=shuffle(allFacts(maxF));
+    save();
+    return;
   }
-  return rnd(maxF+1);
+  var old=S.deck.max, neu=[], a, b;
+  for(a=0;a<=maxF;a++) for(b=0;b<=maxF;b++){
+    if(a>old||b>old) neu.push(a+'x'+b);
+  }
+  shuffle(neu);
+  S.deck.remaining=neu.concat(S.deck.remaining);
+  S.deck.max=maxF;
+  save();
+}
+function poolIndexes(maxF,band){
+  var list=S.deck.remaining, ix=[], i;
+  for(i=0;i<list.length;i++){
+    if(!inPoolKey(list[i],maxF)) continue;
+    if(!bandOk(list[i],maxF,band)) continue;
+    ix.push(i);
+  }
+  return ix;
+}
+function drawOne(maxF,band){
+  var ix=poolIndexes(maxF,band), pick=null, i;
+  if(!ix.length) return null;
+  for(i=0;i<ix.length;i++){
+    if(S.deck.remaining[ix[i]]!==S.deck.last){pick=ix[i];break;}
+  }
+  if(pick==null) pick=ix[0];
+  return S.deck.remaining.splice(pick,1)[0];
+}
+function refillCycle(maxF){
+  var keep=[], i, fresh, t;
+  for(i=0;i<S.deck.remaining.length;i++){
+    if(!inPoolKey(S.deck.remaining[i],maxF)) keep.push(S.deck.remaining[i]);
+  }
+  fresh=shuffle(allFacts(maxF));
+  if(fresh.length>1&&fresh[0]===S.deck.last){t=fresh[0];fresh[0]=fresh[1];fresh[1]=t;}
+  S.deck.remaining=fresh.concat(keep);
+  if(S.deck.max<maxF) S.deck.max=maxF;
+}
+function takeFact(maxF,band){
+  ensureDeck();
+  maxF=Math.max(0,Math.min(12,maxF|0));
+  widenDeck(maxF);
+  if(!poolIndexes(maxF,null).length) refillCycle(maxF);
+  var key=drawOne(maxF,band);
+  if(!key&&band) key=drawOne(maxF,null);
+  if(!key){
+    refillCycle(maxF);
+    key=drawOne(maxF,band)||drawOne(maxF,null);
+  }
+  if(!key) key='1x1';
+  S.deck.last=key;
+  save();
+  return key;
+}
+function missFact(a,b){
+  ensureDeck();
+  var k=(a|0)+'x'+(b|0), next=[], i, at;
+  for(i=0;i<S.deck.remaining.length;i++) if(S.deck.remaining[i]!==k) next.push(S.deck.remaining[i]);
+  at=Math.min(2,next.length);
+  next.splice(at,0,k);
+  S.deck.remaining=next;
+  S.deck.last=k;
+  save();
+}
+function nextFact(band){
+  var k=takeFact(maxFactor(Run.floor),band||null), p=k.split('x');
+  return {a:+p[0],b:+p[1]};
 }
 function makeChoices(a,b){
   var ans=a*b;
@@ -761,20 +1053,82 @@ function fillAnswers(box,handler){
     box.appendChild(bt);
   });
 }
-function ask(mode){
-  var fact=nextFact();
+function paintPotion(){
+  var b=$('#potionBtn');
+  if(!Run||Run.mode!=='advanced'||Run.potions<=0||Phase!=='move'){b.hidden=true;return;}
+  b.hidden=false;
+  b.textContent='🧪 '+Run.potions;
+}
+function usePotion(){
+  if(Phase!=='move'||!Run||Run.potions<=0) return;
+  var heal=Math.max(10,Math.round(Run.maxHp*0.4));
+  var next=Math.min(Run.maxHp,Run.hp+heal);
+  if(next<=Run.hp){toast('HP is already full');return;}
+  Run.potions--;
+  var got=next-Run.hp;
+  Run.hp=next;
+  SFX.heal();
+  paintHp();
+  floatAt($('#meSlot'),'+'+got,'#2fbf71');
+  $('#battleMsg').textContent='Used a Potion!';
+  paintPotion();
+}
+$('#potionBtn').addEventListener('click',function(){SFX.tap();usePotion();});
+function showMoves(){
+  if(Phase==='over'||!Run||Run.mode!=='advanced') return;
+  Phase='move';
+  Run.pendingMove=null;
+  stopTimer();
+  var ms=timerFor(Run.floor);
+  setTimerVisual(1,ms);
+  $('#qText').textContent='Pick a move!';
+  $('#qHint').textContent='A stronger move asks a harder fact.';
+  var box=$('#answers');
+  box.innerHTML='';
+  Run.moves.forEach(function(m){
+    var bt=document.createElement('button');
+    bt.type='button';
+    bt.className='ansBtn moveBtn chunky'+(LIGHT_TYPE[m.type]?' dark':'');
+    bt.style.background=TYPE_COLOR[m.type]||'#607d8b';
+    var pp=Run.pp[m.n]||0;
+    bt.disabled=pp<=0;
+    bt.innerHTML='<span>'+m.n+'</span><small>'+m.type+' · '+pp+' PP</small>';
+    bt.addEventListener('click',function(){pickMove(m);});
+    box.appendChild(bt);
+  });
+  paintPotion();
+}
+function bandFor(m){
+  if(!m) return null;
+  if(m.power<=45) return 'easy';
+  if(m.power>=80) return 'hard';
+  return null;
+}
+function pickMove(m){
+  if(Phase!=='move'||!Run) return;
+  if((Run.pp[m.n]||0)<=0){SFX.tap();return;}
+  SFX.tap();
+  Run.pp[m.n]--;
+  Run.pendingMove=m;
+  ask('battle',bandFor(m));
+}
+function ask(mode,band){
+  var fact=nextFact(band);
   Cur={a:fact.a,b:fact.b,ans:fact.a*fact.b,mode:mode};
   Phase='ask';
   var my=++seq;
   Cur.seq=my;
   var qEl=mode==='catch'?$('#capQ'):$('#qText');
-  var hintEl=$('#qHint');
   qEl.innerHTML=Cur.a+' × '+Cur.b+' = ?';
   if(mode==='battle'){
-    hintEl.textContent=Run.streak>=3?('🔥 '+Run.streak+' in a row!'):'Tap the right answer to attack.';
+    var hint='Tap the right answer to attack.';
+    if(Run.pendingMove) hint=Run.pendingMove.n+' — '+hint;
+    else if(Run.streak>=3) hint='🔥 '+Run.streak+' in a row!';
+    $('#qHint').textContent=hint;
     fillAnswers($('#answers'),onBattlePick);
     var ms=timerFor(Run.floor);
     setTimerVisual(1,ms);
+    paintPotion();
     startTimer(ms,function(){if(Cur&&Cur.seq===my&&Phase==='ask') onTimeout();});
   }
 }
@@ -787,7 +1141,11 @@ function onBattlePick(v,btn){
     SFX.correct();
     $('#qHint').textContent='Nice — here comes another!';
     var my=Cur.seq;
-    later(function(){if(Phase!=='over'&&Cur&&Cur.seq===my) ask('battle');},650);
+    later(function(){
+      if(Phase==='over'||!Cur||Cur.seq!==my) return;
+      if(Run.mode==='advanced') showMoves();
+      else ask('battle');
+    },650);
     return;
   }
   if(Phase!=='ask') return;
@@ -822,19 +1180,62 @@ function floatAt(el,text,color){
   host.appendChild(f);
   setTimeout(function(){f.remove();},1100);
 }
+function foeAttack(){
+  if(Run.mode!=='advanced') return {n:Foe.boss?Foe.sp.move:'Tackle',dmg:Foe.dmg,eff:1};
+  var moves=movesFor(Foe.sp);
+  var mid=moves.filter(function(m){return m.power>=45&&m.power<90;});
+  var pool=mid.length?mid:moves;
+  var m=pool[rnd(pool.length)];
+  var eff=effectiveness(m.type,typesOf(SPECIES[Run.monId]));
+  var stab=typesOf(Foe.sp).indexOf(m.type)>=0?1.2:1;
+  var scale=(0.55+Run.floor*0.025)*(Foe.boss?1.2:1);
+  var dmg=eff===0?0:Math.max(1,Math.round((m.power/10)*(Foe.sp.atk/10)*stab*eff*scale));
+  return {n:m.n,dmg:dmg,eff:eff};
+}
+function foeStrike(cb){
+  var atk=foeAttack();
+  restartAnim($('#foeSlot'),'lungeF');
+  var msg=Foe.sp.n+' used '+atk.n+'!';
+  var et=effText(atk.eff);
+  if(Run.mode==='advanced'&&et) msg+=' '+et;
+  $('#battleMsg').textContent=msg;
+  later(function(){
+    if(Phase==='over') return;
+    Run.hp=Math.max(0,Run.hp-atk.dmg);
+    paintHp();
+    restartAnim($('#battle'),'shake');
+    restartAnim($('#meSlot'),'hitflash');
+    floatAt($('#meSlot'),atk.dmg?('−'+atk.dmg):'No effect','#e53935');
+    SFX.hurt();
+    if(cb) cb();
+  },200);
+}
 function resolveHit(ms,btn){
   record(Cur.a,Cur.b,true,ms);
   Run.streak++;
   if(Run.streak>Run.bestStreak) Run.bestStreak=Run.streak;
   updateStreak();
-  var mult=1,tag='';
-  if(ms<=1500){mult=1.55;tag='Critical! ';}
-  else if(ms<=2000){mult=1.25;tag='Fast! ';}
-  var dmg=Math.max(1,Math.round(Run.atk*mult));
+  var limit=timerFor(Run.floor);
+  var mult=1, tag='';
+  if(ms<=limit/2){mult=1.55;tag='Critical! ';}
+  else if(ms<=limit*(2/3)){mult=1.25;tag='Fast! ';}
+  var move=Run.pendingMove;
+  var me=SPECIES[Run.monId];
+  var moveName=move?move.n:me.move;
+  var dmg, effMsg='';
+  if(move){
+    var eff=effectiveness(move.type,typesOf(Foe.sp));
+    var stab=typesOf(me).indexOf(move.type)>=0?1.2:1;
+    var lvScale=1+0.08*(Run.level-1);
+    dmg=eff===0?0:Math.max(1,Math.round((move.power/10)*(Run.atk/10)*stab*eff*mult*lvScale));
+    effMsg=effText(eff);
+  }else{
+    dmg=Math.max(1,Math.round(Run.atk*mult));
+  }
   btn.classList.add('right');
   Array.prototype.forEach.call($('#answers').children,function(x){if(x!==btn)x.classList.add('dim');});
   showEquation();
-  $('#qHint').textContent=tag+SPECIES[Run.monId].n+' used '+SPECIES[Run.monId].move+'!';
+  $('#qHint').textContent=tag+me.n+' used '+moveName+'!'+(effMsg?(' '+effMsg):'');
   if(mult>=1.5) SFX.crit(); else SFX.hit();
   restartAnim($('#meSlot'),'lunge');
   var my=Cur.seq;
@@ -843,9 +1244,17 @@ function resolveHit(ms,btn){
     Foe.hp=Math.max(0,Foe.hp-dmg);
     paintHp();
     restartAnim($('#foeSlot'),'hitflash');
-    floatAt($('#foeSlot'),tag+'−'+dmg,'#e85d04');
+    floatAt($('#foeSlot'),dmg?(tag+'−'+dmg):'No effect','#e85d04');
     if(Foe.hp<=0){
       later(function(){if(Cur&&Cur.seq===my) foeDown();},420);
+    }else if(Run.mode==='advanced'){
+      later(function(){
+        if(Phase==='over'||!Cur||Cur.seq!==my) return;
+        foeStrike(function(){
+          if(Run.hp<=0) later(function(){if(Cur&&Cur.seq===my) playerDown();},500);
+          else later(function(){if(Phase!=='over'&&Cur&&Cur.seq===my) showMoves();},400);
+        });
+      },400);
     }else{
       later(function(){if(Phase!=='over'&&Cur&&Cur.seq===my) ask('battle');},700);
     }
@@ -853,8 +1262,8 @@ function resolveHit(ms,btn){
 }
 function resolveMiss(btn,timedOut){
   record(Cur.a,Cur.b,false,0);
-  noteMiss(Cur.a,Cur.b);
   Run.streak=0;updateStreak();
+  Run.pendingMove=null;
   if(btn) btn.classList.add('wrong');
   showEquation();
   glowCorrect($('#answers'));
@@ -863,32 +1272,26 @@ function resolveMiss(btn,timedOut){
     : ('Almost! '+Cur.a+' × '+Cur.b+' = '+Cur.ans);
   $('#qHint').textContent=gentle+'. Tap '+Cur.ans+' to keep going.';
   SFX.wrong();
-  var dmg=Foe.dmg;
   var my=Cur.seq;
   later(function(){
     if(Phase==='over') return;
-    restartAnim($('#foeSlot'),'lungeF');
-    $('#battleMsg').textContent=Foe.sp.n+' used '+(Foe.boss?Foe.sp.move:'Tackle')+'!';
-    later(function(){
-      if(Phase==='over') return;
-      Run.hp=Math.max(0,Run.hp-dmg);
-      paintHp();
-      restartAnim($('#battle'),'shake');
-      restartAnim($('#meSlot'),'hitflash');
-      floatAt($('#meSlot'),'−'+dmg,'#e53935');
-      SFX.hurt();
-      if(Run.hp<=0){
-        later(function(){if(Cur&&Cur.seq===my) playerDown();},700);
-      }else{
-        Phase='tapfix';
-      }
-    },200);
+    foeStrike(function(){
+      if(Run.hp<=0) later(function(){if(Cur&&Cur.seq===my) playerDown();},500);
+      else Phase='tapfix';
+    });
   },160);
 }
 function foeDown(){
   Phase='lock';
   stopTimer();
   Run.kos++;
+  if(!Foe.xpGiven){
+    Foe.xpGiven=true;
+    var gain=xpGain(Run.floor,Foe.boss);
+    S.xp+=gain;
+    Run.xpEarned=(Run.xpEarned||0)+gain;
+    save();
+  }
   SFX.fanfare();
   restartAnim($('#foeSlot'),'faint');
   $('#battleMsg').textContent=Foe.sp.n+' is caught off guard!';
@@ -916,7 +1319,7 @@ function berryAmount(){
 function openCapture(){
   Phase='capture';
   stopTimer();
-  var owned=S.team.indexOf(Foe.id)>=0;
+  var owned=!!member(Foe.id);
   var ov=$('#capOv');
   ov.classList.add('show');
   ov.classList.remove('quizzing');
@@ -958,7 +1361,7 @@ function startCatchQuiz(){
   track.appendChild(bar);
   var secs=document.createElement('span');
   secs.id='capSecs';
-  secs.textContent=Math.round(timerFor(Run.floor)/1000)+'s';
+  secs.textContent=fmtSecs(timerFor(Run.floor))+'s';
   wrap.appendChild(track);
   wrap.appendChild(secs);
   $('#capTimer').innerHTML='';
@@ -981,7 +1384,6 @@ function onCatchPick(v,btn){
   }else{
     Phase='lock';stopTimer();
     record(Cur.a,Cur.b,false,0);
-    noteMiss(Cur.a,Cur.b);
     btn.classList.add('wrong');
     catchFail(false);
   }
@@ -991,7 +1393,7 @@ function catchFail(timedOut){
   if(timedOut&&Phase!=='ask') return;
   Phase='capdone';
   stopTimer();
-  if(timedOut&&Cur){record(Cur.a,Cur.b,false,0);noteMiss(Cur.a,Cur.b);}
+  if(timedOut&&Cur) record(Cur.a,Cur.b,false,0);
   SFX.wrong();
   $('#capOv').classList.remove('quizzing');
   $('#capAnswers').innerHTML='';
@@ -1007,7 +1409,7 @@ function catchSuccess(){
   if(Phase==='capdone'||Phase==='over') return;
   Phase='capdone';
   SFX.caught();
-  if(S.team.indexOf(Foe.id)<0){S.team.push(Foe.id);Run.caught++;save();}
+  if(!member(Foe.id)){S.team.push({id:Foe.id,level:1});Run.caught++;save();}
   $('#capAnswers').innerHTML='';
   $('#capTimer').innerHTML='';
   $('#capOv').classList.remove('quizzing');
@@ -1051,6 +1453,8 @@ function showGameOver(){
     '<div class="stat">Floor reached '+Run.floor+'</div>'+
     '<div class="stat">Best floor '+S.bestFloor+'</div>'+
     '<div class="stat">Battles won '+Run.kos+'</div>'+
+    '<div class="stat">XP earned '+Run.xpEarned+'</div>'+
+    '<div class="stat">Total XP '+S.xp+'</div>'+
     '<div class="stat">Team '+S.team.length+'</div>';
   show('over');
 }
@@ -1058,12 +1462,12 @@ $('#overAgain').addEventListener('click',function(){SFX.tap();openTeam();});
 $('#overHome').addEventListener('click',function(){SFX.tap();paintBest();show('title');});
 
 document.addEventListener('keydown',function(e){
-  if(Phase!=='ask'&&Phase!=='tapfix') return;
+  if(Phase!=='ask'&&Phase!=='tapfix'&&Phase!=='move') return;
   var n=+e.key;
   if(n>=1&&n<=4){
     var box=Cur&&Cur.mode==='catch'?$('#capAnswers'):$('#answers');
     var btn=box.children[n-1];
-    if(btn) btn.click();
+    if(btn&&!btn.disabled) btn.click();
   }
 });
 
@@ -1093,28 +1497,33 @@ function tryGate(){
 }
 $('#gateGo').addEventListener('click',tryGate);
 $('#gateIn').addEventListener('keydown',function(e){if(e.key==='Enter')tryGate();});
-$('#parBack').addEventListener('click',function(){show(returnTo);});
+$('#parBack').addEventListener('click',function(){
+  if(returnTo==='team') renderTeam(member(S.lastPick)?S.lastPick:S.team[0].id);
+  if(returnTo==='title') paintBest();
+  show(returnTo);
+});
 function pct(r,w){return (r+w)?Math.round(100*r/(r+w)):null;}
 function cls(f){if(!f||!(f.r+f.w))return 'c-none';var p=f.r/(f.r+f.w);if(p>=0.9&&f.r+f.w>=2)return 'c-good';if(p>=0.7)return 'c-ok';return 'c-bad';}
 function renderParent(){
   var tr=0,tw=0;
   Object.keys(S.facts).forEach(function(k){tr+=S.facts[k].r;tw+=S.facts[k].w;});
-  var names=S.team.map(function(id){return SPECIES[id].n;}).join(', ');
+  var names=S.team.map(function(m){return SPECIES[m.id].n+' Lv.'+m.level;}).join(', ');
   var h='';
   h+='<div class="pcards">';
   h+='<div class="pcard"><b>'+(tr+tw)+'</b><span>questions answered</span></div>';
   h+='<div class="pcard"><b>'+(pct(tr,tw)===null?'—':pct(tr,tw)+'%')+'</b><span>accuracy</span></div>';
   h+='<div class="pcard"><b>'+(S.bestFloor||'—')+'</b><span>best floor</span></div>';
+  h+='<div class="pcard"><b>'+S.xp+'</b><span>XP saved</span></div>';
   h+='<div class="pcard"><b>'+S.team.length+'</b><span>Pokémon on the team</span></div>';
   h+='<div class="pcard"><b>'+S.runs+'</b><span>runs started</span></div>';
   h+='</div>';
-  h+='<div class="psec"><h3>Team</h3><div>'+names+'</div><p style="margin:8px 0 0;font-size:13px;color:#667">Early floors use 0–3. The tables open up to 12 × 12 deeper in a run. Missed facts are asked again within a question or two. A correct answer attacks; a miss or a timeout lets the wild Pokémon hit back. Faster answers can critically hit.</p></div>';
+  h+='<div class="psec"><h3>Team</h3><div>'+names+'</div><p style="margin:8px 0 0;font-size:13px;color:#667">The timer starts at 3 seconds and grows to 5 seconds on deeper floors. 3 × 4 and 4 × 3 are practiced separately. A fact answered correctly waits until every fact in the current range has been answered, then that range starts over. Missed facts come back soon. Advanced mode adds four moves, types, and two Potions each run. XP from wins can level up a partner between runs.</p></div>';
   h+='<div class="psec"><h3>Fact mastery · 0–12</h3><div class="gridwrap"><div class="grid13"><div class="h">×</div>';
   for(var c=0;c<=12;c++) h+='<div class="h">'+c+'</div>';
   for(var a=0;a<=12;a++){
     h+='<div class="h">'+a+'</div>';
     for(var b=0;b<=12;b++){
-      var f=S.facts[fkey(a,b)];
+      var f=S.facts[a+'x'+b];
       var tip=a+'×'+b+'= '+(a*b)+(f?(' · '+f.r+' right, '+f.w+' missed'):' · not tried');
       h+='<div class="'+cls(f)+'" title="'+tip+'">'+(a*b)+'</div>';
     }
@@ -1137,7 +1546,7 @@ function renderParent(){
     h+='</ol>';
   }
   h+='</div>';
-  h+='<div class="psec"><h3>Reset</h3><p style="margin:0 0 10px;font-size:14px">Start fresh. Pikachu remains. Caught Pokémon, the best floor, and stats are erased.</p><button id="resetBtn" type="button">Reset all progress…</button></div>';
+  h+='<div class="psec"><h3>Reset</h3><p style="margin:0 0 10px;font-size:14px">Start fresh. Pikachu stays at level 1. Caught Pokémon, XP, levels, the question deck, the best floor, and stats are erased.</p><button id="resetBtn" type="button">Reset all progress…</button></div>';
   $('#parentBody').innerHTML=h;
   $('#resetBtn').addEventListener('click',function(){$('#confirmOv').classList.add('show');});
 }
@@ -1175,7 +1584,18 @@ window.__ptt={
   get phase(){return Phase;},
   get cur(){return Cur;},
   species:SPECIES,
-  maxFactor:maxFactor
+  maxFactor:maxFactor,
+  timerFor:timerFor,
+  effectiveness:effectiveness,
+  typesOf:typesOf,
+  grownStats:grownStats,
+  levelCost:levelCost,
+  xpGain:xpGain,
+  movesFor:movesFor,
+  takeFact:takeFact,
+  missFact:missFact,
+  widenDeck:widenDeck,
+  allFacts:allFacts
 };
 })();
 </script>
