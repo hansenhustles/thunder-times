@@ -95,11 +95,15 @@ textarea{font-family:inherit;-webkit-user-select:text;user-select:text;}
 @keyframes runoff{to{transform:translateX(80px);opacity:0}}
 .panel{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 12px 10px}
 .slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
+#slots{display:grid;gap:4px;width:100%;grid-template-columns:repeat(var(--cols, 6), minmax(0, 1fr));}
+#slots .slot{width:auto;min-width:0;max-width:none;height:clamp(36px,11vw,60px);border-radius:10px;border-width:2px;font-size:clamp(16px, calc(52vw / var(--cols, 6)), 32px);padding:0 1px;overflow:hidden}
 .slot{width:clamp(42px,10vw,64px);height:clamp(50px,12vw,72px);border-radius:14px;background:rgba(255,255,255,.2);border:3px dashed rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-size:clamp(28px,6vw,44px);font-weight:900;color:#fff;text-transform:lowercase}
 .slot.filled{background:#fff4c2;color:var(--ink);border-style:solid;border-color:#ffd21f;animation:pop .18s ease-out}
 .slot.reveal{background:#fff;color:#6d28d9;border-style:solid;border-color:#fff}
 @keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
 #prompt{text-align:center;font-weight:900;color:#ffe9a8;min-height:1.3em;font-size:clamp(15px,2.2vh,20px);flex:none}
+#cue{text-align:center;font-weight:800;color:#fff;font-size:clamp(16px,2.4vh,22px);line-height:1.35;flex:none;padding:0 4px}
+#cue .blank{color:#ffe600;letter-spacing:1px}
 .tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
 .tools .big{min-height:52px}
 #tiles,#keys{flex:1;min-height:0;overflow:auto;display:grid;gap:8px;align-content:start}
@@ -167,7 +171,7 @@ textarea{font-family:inherit;-webkit-user-select:text;user-select:text;}
 }
 </style>
 </head>
-<body data-version="wq1">
+<body data-version="wq2">
 <section id="title" class="screen active">
   <a class="backlink" href="../">← Thunder Times</a>
   <div class="corner">
@@ -212,6 +216,7 @@ textarea{font-family:inherit;-webkit-user-select:text;user-select:text;}
       <div id="zap" aria-hidden="true">⚡</div>
     </div>
     <div class="panel">
+      <div id="cue" hidden></div>
       <div class="slots" id="slots" aria-live="polite"></div>
       <div id="prompt">Tap the speaker. Then spell what you hear.</div>
       <div class="tools">
@@ -314,34 +319,35 @@ function pair(list){
     return {w:line.slice(0,i), s:line.slice(i+1)};
   });
 }
+var LISTS=2;
 var ROUTES=[
-  {id:'1', name:'Leafy Path', teach:'3-letter words', sample:'cat, dog, sun', leader:'Brock', badge:'Boulder', gym:95, wild:[16,19,10,13,21,43,129,60],
+  {id:'1', name:'Leafy Path', teach:'4th and 5th grade review', sample:'thought, island, answer', leader:'Brock', badge:'Boulder', gym:95, wild:[16,19,10,13,21,43,129,60],
    words:pair([
-    'cat|The cat sat on a mat.','dog|The dog ran to me.','sun|The sun is bright.','hat|Dad has a red hat.','pig|The pig is in the mud.','cup|The cup is full.','bed|It is time for bed.','map|We read the map.','pen|I write with a pen.','bus|We ride the bus.','fox|The fox is quick.','jam|Toast with jam is yummy.','lip|I bit my lip.','nut|The squirrel hid a nut.','rug|The cat is on the rug.','van|The van is blue.','web|A spider made a web.','box|The toy is in the box.','fin|The fish has a fin.','hop|Bunnies hop in the grass.','kit|The kit is a baby fox.','log|We sat on a log.','mud|Boots get full of mud.','net|The ball is in the net.','pot|Soup is in the pot.','red|The apple is red.','sip|I sip the water.','top|The top can spin.','wig|The clown has a wig.','zip|Zip up your coat.','bat|The bat flies at night.','hen|The hen laid an egg.','jet|A jet flies fast.','mom|I love my mom.','run|I can run fast.','sit|Please sit with me.'
+    'thought|I thought the story was funny.','brought|She brought cupcakes to class.','island|A bridge connects the island to shore.','answer|Write the answer on the line.','caught|The fielder caught the ball.','laugh|That joke made everyone laugh.','people|Many people visit the museum.','enough|One sandwich is enough for me.','through|We walked through the hallway.','though|I am tired, though I will finish.','bought|Dad bought apples at the market.','taught|My coach taught me the kick.','written|The report is written in ink.','listen|Please listen for your name.','often|We often read after lunch.','friend|A friend saved me a seat.','believe|I believe you can solve it.','calendar|Circle the date on the calendar.','actually|The cave is actually a tunnel.','different|Each team has a different color.','favorite|Blue is my favorite color.','measure|Measure the desk with a ruler.','ocean|Whales live in the ocean.','special|Friday is a special day.','certain|I am certain the door is locked.','picture|Draw a picture of your hero.','nature|We hiked to study nature.','country|Canada is a large country.','young|The young owl left the nest.','trouble|Ask for help if you have trouble.','heart|Your heart beats faster when you run.','early|The bus comes early on Monday.','learn|We learn a new word each day.','build|They will build a new library.','guard|The guard waved us through the gate.','busy|The kitchen is busy before dinner.'
    ])},
-  {id:'2', name:'Brook Bend', teach:'4-letter words and blends', sample:'frog, stop, clap', leader:'Misty', badge:'Cascade', gym:121, wild:[52,37,58,54,39,27,74,50],
+  {id:'2', name:'Brook Bend', teach:'vowel teams and diphthongs', sample:'pursue, journey, beautiful', leader:'Misty', badge:'Cascade', gym:121, wild:[52,37,58,54,39,27,74,50],
    words:pair([
-    'frog|A frog sits on a log.','stop|The sign says stop.','clap|We clap for Pikachu.','drum|He plays the drum.','flag|The flag is waving.','grin|She has a big grin.','plum|The plum is sweet.','snap|I snap my fingers.','swim|We swim in the pool.','trip|We take a trip.','crab|A crab walks sideways.','drip|Raindrops drip down.','flip|Watch me flip.','glad|I am glad you came.','grab|Grab your backpack.','plan|We plan a picnic.','skip|We skip down the path.','slip|Do not slip on the ice.','spin|The wheel can spin.','trap|The mouse sees the trap.','best|You did your best.','camp|We camp by the lake.','desk|Books are on the desk.','fast|The bike is fast.','hand|Hold my hand.','jump|Pikachu can jump.','lamp|The lamp is bright.','milk|I drink milk.','nest|Eggs are in the nest.','sand|Toes wiggle in the sand.','tent|We sleep in a tent.','wind|The wind is strong.','gift|A gift is in the box.','help|I can help you.','just|We just got home.','left|Turn left at the tree.'
+    'pursue|The detective will pursue the clue.','boundary|The fence marks the boundary.','noise|The noise came from the gym.','destroy|Please do not destroy the model.','journey|The journey takes three days.','beautiful|The canyon view is beautiful.','audience|The audience clapped at the end.','caution|Use caution on the wet floor.','moisture|Moisture fogged the window.','poison|Never touch a poison label.','avoid|Avoid the muddy shortcut.','royal|The royal banner is purple.','voyage|The voyage crossed the sea.','oyster|An oyster can hide a pearl.','powder|Snow fell like powder.','allow|The rules allow one redo.','amount|Double the amount of flour.','piece|Save me a piece of fruit.','brief|Give a brief report.','chief|The fire chief led the drill.','field|We play soccer on the field.','neighbor|Our neighbor grows tomatoes.','weight|Record the weight in grams.','freight|Freight trains carry grain.','juice|Orange juice is in the cooler.','fruit|Bring a piece of fruit.','suit|The astronaut wears a suit.','cruise|The cruise ship left the harbor.','awful|The spoiled milk smelled awful.','drawn|The map is drawn to scale.','loyal|A loyal dog waits by the door.','annoy|Loud alarms annoy the class.','employ|Stores employ many workers.','enjoy|I enjoy science lab.','reason|Give a reason for your answer.','season|Autumn is my favorite season.'
    ])},
-  {id:'3', name:'Shimmer Shore', teach:'sh, ch, th, and ck', sample:'ship, chin, duck', leader:'Surge', badge:'Thunder', gym:26, wild:[41,81,92,63,66,104,120,133],
+  {id:'3', name:'Shimmer Shore', teach:'prefixes and suffixes', sample:'disappear, happiness, comfortable', leader:'Surge', badge:'Thunder', gym:26, wild:[41,81,92,63,66,104,120,133],
    words:pair([
-    'ship|The ship sails away.','shop|We shop for apples.','fish|The fish swims fast.','wish|Make a wish.','dish|The dish is clean.','rush|Do not rush.','chat|We chat with friends.','chin|He rubbed his chin.','chop|Chop the carrot.','much|Thank you so much.','rich|The soil is rich.','such|It is such a nice day.','thin|The ice is thin.','then|Wash, then dry.','bath|It is bath time.','math|Math can be fun.','path|Stay on the path.','with|Come with me.','duck|The duck says quack.','back|Come back soon.','pack|Pack your bag.','sock|I lost one sock.','rock|A rock is in the path.','kick|Kick the ball.','lock|Lock the gate.','luck|Good luck today.','shock|The shock was a surprise.','thick|The blanket is thick.','check|Check your spelling.','shack|The shack is by the sea.','thumb|Thumbs up.','bench|We sit on the bench.'
+    'unbelievable|The comeback was unbelievable.','disappear|The fog will disappear by noon.','preview|We watched a preview of the show.','careless|A careless error changed the sum.','happiness|Sharing snacks spreads happiness.','government|The government builds roads.','comfortable|These shoes are comfortable.','disagree|I disagree with that claim.','dishonest|A dishonest answer wastes time.','discover|Scientists discover new species.','disappoint|I will not disappoint my team.','rewrite|Rewrite the messy sentence.','review|Review the chapter before the quiz.','replace|Replace the dead battery.','careful|Be careful with the glass slide.','helpful|The diagram was helpful.','useless|A dull pencil is useless.','fearless|The fearless goalie blocked the shot.','darkness|Stars shine in the darkness.','kindness|Kindness can change a day.','enjoyment|Reading brings me enjoyment.','movement|Track the movement of the storm.','payment|The payment is due Friday.','statement|The statement explains the result.','readable|Your handwriting is readable.','washable|The jersey is washable.','misplace|Do not misplace your pass.','misbehave|Pets misbehave when they are bored.','misunderstand|I misunderstand the last step.','impossible|The puzzle looks impossible.','impatient|The impatient line started to fidget.','unusual|An unusual rock sat on the trail.','unfair|That rule feels unfair.','prehistoric|A prehistoric fossil is in the case.','carefully|Carry the beaker carefully.','finally|We finally solved the riddle.'
    ])},
-  {id:'4', name:'Silent Cave', teach:'silent e and long vowels', sample:'cake, bike, home', leader:'Erika', badge:'Rainbow', gym:45, wild:[1,4,7,77,79,93,123,127],
+  {id:'4', name:'Silent Cave', teach:'doubling, drop-e, tion, and sion', sample:'beginning, hoping, decision', leader:'Erika', badge:'Rainbow', gym:45, wild:[1,4,7,77,79,93,123,127],
    words:pair([
-    'cake|We bake a cake.','bike|I ride my bike.','home|Home is warm.','cute|The puppy is cute.','kite|The kite is in the sky.','rope|Hold the rope.','game|We play a game.','lake|Fish live in the lake.','name|My name is Oliver.','tape|Tape the paper.','wave|Wave at the boat.','bone|The dog wants a bone.','nose|A clown has a red nose.','note|I wrote a note.','rose|The rose is red.','huge|The whale is huge.','tune|Hum a tune.','five|I have five fingers.','line|Stand in a line.','mine|That book is mine.','nine|Nine is after eight.','ride|We ride the bus.','time|It is time for lunch.','gate|Close the gate.','late|Do not be late.','made|We made a card.','same|We have the same hat.','hope|I hope it is sunny.','joke|That joke is funny.','rule|One rule is be kind.','these|These socks match.','pine|A pine tree is tall.'
+    'beginning|Start at the beginning of the chapter.','occurred|The eclipse occurred at dawn.','hoping|I am hoping for clear skies.','hopping|The sparrow is hopping on the rail.','celebration|The celebration included a parade.','decision|The decision was fair.','invitation|I mailed the invitation.','permission|Ask permission before you leave.','stopped|The bus stopped at the corner.','planned|We planned the experiment.','running|She is running the last lap.','swimming|Swimming practice is at four.','sitting|We are sitting in row three.','getting|I am getting better at fractions.','writing|He is writing a news article.','making|We are making a model bridge.','coming|The storm is coming from the west.','loving|The sequel is loving and funny.','action|The action scene was exciting.','fraction|One half is a fraction.','station|Meet me at the station.','vacation|Our vacation is in July.','invention|The invention saves water.','attention|Give your attention to the speaker.','confusion|The map cleared our confusion.','explosion|The explosion was only in the movie.','television|The television is off during homework.','division|Division is the inverse of multiplication.','conclusion|The conclusion restates the claim.','forgotten|I had forgotten my protractor.','committed|She committed to daily practice.','permitted|Phones are permitted at lunch.','admitted|He admitted the mistake.','preferred|I preferred the second draft.','scraped|The bike scraped the curb.','baking|We are baking bread for the sale.'
    ])},
-  {id:'5', name:'Team Tree', teach:'vowel teams', sample:'rain, boat, tree', leader:'Koga', badge:'Soul', gym:94, wild:[131,134,135,136,59,6,9,3],
+  {id:'5', name:'Team Tree', teach:'homophones and confused words', sample:'their, weather, accept', leader:'Koga', badge:'Soul', gym:94, wild:[131,134,135,136,59,6,9,3],
    words:pair([
-    'rain|Rain falls on the roof.','boat|The boat floats.','tree|A bird is in the tree.','seed|Plant a seed.','feet|Two feet, ten toes.','keep|Keep trying.','team|We are a team.','leaf|A leaf fell down.','road|The road is long.','toad|A toad hops by.','coat|Wear a warm coat.','soap|Soap makes bubbles.','moon|The moon is bright.','food|Food gives us energy.','pool|We swim in the pool.','room|This room is cozy.','book|I read a book.','look|Look at the stars.','cook|Dad can cook.','good|That was a good try.','play|We play outside.','stay|Stay with the group.','tail|The dog wags its tail.','mail|The mail is here.','wait|Wait for the walk sign.','pain|A hug can help pain.','blue|The sky is blue.','glue|Glue sticks paper.','beach|We play at the beach.','toast|Toast with jam.','sheep|Sheep have soft wool.','train|The train goes fast.'
+    'their|We left their coats on the bus.','there|The library is over there.','they\'re|They\'re ready for the spelling bee.','weather|The weather is sunny and warm.','whether|Tell me whether you want juice or water.','principal|The principal greeted us at the door.','principle|A fair rule is a good principle.','stationery|I wrote the note on blue stationery.','stationary|The parked car stayed stationary.','accept|Please accept this thank-you note.','except|Everyone is here except the goalie.','affect|Dark clouds affect the picnic plan.','effect|The effect of practice is better spelling.','than|A whale is bigger than a dolphin.','then|Wash your hands, then set the table.','hear|I can hear the thunder.','here|Please sit here beside me.','brake|Press the brake to stop the bike.','break|Do not break the pencil.','loose|The knot is loose.','lose|Do not lose your library book.','quiet|The library is a quiet room.','quite|That puzzle is quite tricky.','advice|Mom gave me good advice.','advise|Teachers advise us to read every day.','capital|Paris is the capital of France.','capitol|We visited the capitol building.','passed|We passed the park on the way home.','past|The story is set in the past.','dessert|We had ice cream for dessert.','to|We walked to the museum.','too|The soup is too hot.','two|I have two sharpened pencils.','your|Your project is on the desk.','you\'re|You\'re going to like this book.','its|The puppy chased its tail.','it\'s|It\'s time for recess.'
    ])},
-  {id:'6', name:'Star Bridge', teach:'r-controlled and sight words', sample:'star, friend, said', leader:'Sabrina', badge:'Marsh', gym:65, wild:[68,148,130,143,59,6,9,3],
+  {id:'6', name:'Star Bridge', teach:'silent letters and tricky patterns', sample:'knowledge, rhythm, scissors', leader:'Sabrina', badge:'Marsh', gym:65, wild:[68,148,130,143,59,6,9,3],
    words:pair([
-    'car|The car is red.','star|I see a bright star.','farm|Cows live on a farm.','park|We play at the park.','bird|A bird can sing.','girl|The girl reads.','first|You are first in line.','turn|Take a turn.','her|Her hat is yellow.','corn|Corn grows tall.','fork|Use a fork.','because|I smile because I am happy.','friend|A friend shares.','said|Mom said hello.','they|They play tag.','were|We were at the park.','where|Where is my sock?','could|I could help you.','would|I would like a turn.','should|We should be kind.','people|People can be helpers.','water|Water keeps us strong.','again|Let us try again.','about|This book is about dogs.','their|Their dog is fluffy.','there|The ball is over there.','what|What is your name?','when|When is lunch?','which|Which book do you want?','your|Your smile is bright.','have|I have a pencil.','come|Come play with me.'
+    'knowledge|Knowledge grows when you read.','rhythm|Clap the rhythm of the song.','muscle|Stretch each muscle before you sprint.','scissors|Use scissors to cut the string.','wrestle|The pups wrestle in the grass.','gnaw|Beavers gnaw on the log.','colonel|The colonel inspected the map.','debris|Crews cleared debris from the road.','guarantee|The shop will guarantee the repair.','knight|The knight raised a shield.','knock|Knock before you enter.','knee|Bend your knee in the stretch.','knife|The knife stays in the drawer.','wrist|The watch fits my wrist.','wrong|That digit is in the wrong column.','castle|The castle sits on a hill.','whistle|The referee will whistle.','fasten|Fasten the strap on your helmet.','thumb|Give a thumb if you agree.','climb|We climb the rope in gym.','lamb|The lamb stayed near the fence.','doubt|I doubt the rumor is true.','sign|The sign points to the exit.','design|Design a cover for the book.','foreign|A foreign coin was in the jar.','honest|Give an honest estimate.','hour|The lab lasts one hour.','ghost|The story has a friendly ghost.','rhyme|The last words rhyme.','autumn|Leaves turn red in autumn.','column|Add the numbers in the column.','handsome|The handsome heron stood still.','subtle|The clue was subtle.','gnome|A garden gnome guards the beans.','align|Align the decimal points.','sword|The sword is only a prop.'
    ])},
-  {id:'7', name:'Thunder Peak', teach:'bigger words', sample:'apple, tiger, thunder', leader:'Blaine', badge:'Volcano', gym:126, wild:[149,150,144,145,146,151,95,121],
+  {id:'7', name:'Thunder Peak', teach:'spelling bee challenge', sample:'necessary, separate, Wednesday', leader:'Blaine', badge:'Volcano', gym:126, wild:[149,150,144,145,146,151,95,121],
    words:pair([
-    'apple|An apple is crunchy.','tiger|A tiger has stripes.','puppy|The puppy is soft.','happy|I feel happy.','little|A little bug crawled by.','letter|I wrote a letter.','summer|Summer days are warm.','winter|Winter can be snowy.','rabbit|A rabbit has long ears.','kitten|The kitten likes yarn.','yellow|The sun looks yellow.','purple|Grapes can be purple.','garden|Flowers grow in the garden.','pencil|Sharpen the pencil.','window|Look out the window.','sister|My sister laughs.','brother|My brother builds.','family|Family eats together.','morning|Morning starts the day.','teacher|The teacher helps us.','reading|Reading opens worlds.','birthday|Birthday cake is sweet.','sandwich|A sandwich is in the bag.','butterfly|A butterfly has bright wings.','dinosaur|A dinosaur was huge.','thunder|Thunder follows lightning.','animal|Every animal needs care.','remember|Remember to be kind.'
+    'necessary|A pencil is necessary for the test.','separate|Separate the recyclables.','mischievous|The mischievous kitten hid my sock.','occasionally|We occasionally visit the planetarium.','conscience|My conscience says to tell the truth.','restaurant|The restaurant serves noodles.','environment|Protect the environment.','embarrass|Loud jokes can embarrass a friend.','wednesday|Wednesday is in the middle of the week.','february|February is the shortest month.','definitely|I will definitely bring my book.','accommodate|The table can accommodate eight people.','recommend|I recommend the science exhibit.','privilege|Helping backstage is a privilege.','pronunciation|Check the pronunciation of the name.','argument|The argument ended with a handshake.','committee|The committee planned the fair.','convenience|A locker is a convenience.','curiosity|Curiosity leads to good questions.','discipline|Practice takes discipline.','especially|I especially like the volcano chapter.','excellent|That was an excellent explanation.','familiar|The melody sounds familiar.','immediate|The cut needs immediate care.','independent|Work on an independent project.','lightning|Lightning lit the clouds.','noticeable|The improvement is noticeable.','nuisance|A mosquito can be a nuisance.','parallel|The rails are parallel.','possession|The ball is in our possession.','recognize|I recognize that constellation.','schedule|The schedule is posted by the door.','sincerely|She signed the letter sincerely.','temperature|Record the temperature at noon.','tomorrow|The exhibit opens tomorrow.','weird|The weird fossil surprised us.'
    ])}
 ];
 var ROUTE_BY={};
@@ -349,14 +355,20 @@ ROUTES.forEach(function(r){ROUTE_BY[r.id]=r;});
 var SCHOOL={id:'school', name:'School List', teach:'This week at school', sample:'words you add', leader:'Teacher', badge:'Star', gym:113, wild:[133,39,52,16]};
 
 function blankRoute(){return {badge:false, cleared:0, correct:0, wrong:0};}
+function spellOk(w){
+  return typeof w==='string' && w.length>=2 && w.length<=14 && /^[a-z']+$/.test(w) && /[a-z]/.test(w);
+}
 function defaults(){
   var routes={school:blankRoute()}, decks={school:{remaining:[], last:'', seen:[]}};
   ROUTES.forEach(function(r){routes[r.id]=blankRoute(); decks[r.id]={remaining:[], last:'', seen:[]};});
-  return {v:1, muted:false, xp:0, keyboard:false, pokedex:{'25':{id:25, count:1}}, routes:routes, decks:decks, stats:{}, schoolWords:[], schoolText:''};
+  return {v:1, lists:LISTS, muted:false, xp:0, keyboard:false, pokedex:{'25':{id:25, count:1}}, routes:routes, decks:decks, stats:{}, schoolWords:[], schoolText:''};
 }
+var migrated=false;
 function sanitize(s){
   var d=defaults();
   if(!s||s.v!==1) return d;
+  var fresh=s.lists!==LISTS;
+  if(fresh) migrated=true;
   d.muted=!!s.muted;
   d.keyboard=!!s.keyboard;
   d.xp=Math.max(0,Math.floor(+s.xp||0));
@@ -370,6 +382,11 @@ function sanitize(s){
   }
   ['school'].concat(ROUTES.map(function(r){return r.id;})).forEach(function(id){
     var r=s.routes&&s.routes[id];
+    if(id!=='school' && fresh){
+      if(r&&typeof r==='object') d.routes[id].badge=!!r.badge;
+      d.decks[id]={remaining:[], last:'', seen:[]};
+      return;
+    }
     if(r&&typeof r==='object'){
       d.routes[id]={
         badge:!!r.badge,
@@ -397,14 +414,18 @@ function sanitize(s){
     });
   }
   if(!d.pokedex['25']) d.pokedex['25']={id:25, count:1};
+  var live={};
+  if(!fresh) ROUTES.forEach(function(rt){rt.words.forEach(function(x){live[x.w]=1;});});
+  d.schoolWords.forEach(function(w){live[w]=1;});
   if(s.stats&&typeof s.stats==='object'){
     Object.keys(s.stats).forEach(function(w){
-      if(!/^[a-z]{2,14}$/.test(w)) return;
+      if(!spellOk(w)||!live[w]) return;
       var f=s.stats[w];
       if(!f||typeof f!=='object') return;
       d.stats[w]={r:Math.max(0,Math.floor(+f.r||0)), w:Math.max(0,Math.floor(+f.w||0))};
     });
   }
+  d.lists=LISTS;
   return d;
 }
 function wordList(id, state){
@@ -421,6 +442,25 @@ function sentenceFor(id,w){
   return 'I can spell '+w+'.';
 }
 function routeInfo(id){return id==='school'?SCHOOL:ROUTE_BY[id];}
+function defaultKeyboard(id){return id!=='1'&&id!=='2';}
+function voiceLine(){return (Run&&Run.route==='5'&&Word)?Word.sentence:Word.w;}
+function paintCue(){
+  var el=$('#cue');
+  el.innerHTML='';
+  if(!Word||!Run||Run.route!=='5'){el.hidden=true;return;}
+  el.hidden=false;
+  var sentence=Word.sentence, word=Word.w;
+  var re=new RegExp('(^|[^A-Za-z])('+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')(?![A-Za-z])','i');
+  var m=sentence.match(re);
+  if(!m){el.textContent=sentence;return;}
+  var at=m.index+m[1].length;
+  el.appendChild(document.createTextNode(sentence.slice(0,at)));
+  var b=document.createElement('span');
+  b.className='blank';
+  b.textContent=new Array(word.length+1).join('_');
+  el.appendChild(b);
+  el.appendChild(document.createTextNode(sentence.slice(at+m[2].length)));
+}
 function levelFor(xp){return 1+Math.floor((xp||0)/40);}
 function gymNeed(id){return Math.max(1, Math.min(5, wordList(id).length));}
 function beforeGym(id){return Math.max(1, Math.min(8, wordList(id).length));}
@@ -435,6 +475,7 @@ function load(){
 }
 var S=load();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+if(migrated) save();
 
 function rnd(n){return Math.floor(Math.random()*n);}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t;}return a;}
@@ -532,6 +573,7 @@ $$('.muteBtn').forEach(function(b){b.addEventListener('click',function(){S.muted
 
 function speak(text){
   try{
+    if(window.__said&&window.__said.push) window.__said.push(text);
     var syn=window.speechSynthesis;
     if(!syn||typeof window.SpeechSynthesisUtterance!=='function') return false;
     var u=new window.SpeechSynthesisUtterance(text);
@@ -651,7 +693,7 @@ function pickMon(ids){
 function startRoute(id, gym){
   hush();
   if(!wordList(id).length){toast('Add words first');return;}
-  Run={route:id, hints:3, gym:!!gym, gymStreak:0, hearts:3, progress:0, perfect:true, heard:false, lastMon:0};
+  Run={route:id, hints:3, gym:!!gym, gymStreak:0, hearts:3, progress:0, perfect:true, heard:false, lastMon:0, keyboard:defaultKeyboard(id)};
   show('play');
   nextEncounter();
 }
@@ -680,17 +722,19 @@ function paintPlay(){
   mountSprite($('#meSlot'), 25, true);
   $('#foeSlot').classList.remove('runoff');
   paintSlots(false);
+  paintCue();
   $('#hear').hidden=!!Run.heard;
+  $('#hear').textContent=Run.route==='5'?'🔊 Hear the sentence':'🔊 Hear the word';
   $('#replay').hidden=!Run.heard;
   $('#sentence').hidden=!Run.heard;
-  $('#tiles').hidden=!Run.heard || !!S.keyboard;
-  $('#keys').hidden=!Run.heard || !S.keyboard;
+  $('#tiles').hidden=!Run.heard || !!Run.keyboard;
+  $('#keys').hidden=!Run.heard || !Run.keyboard;
   $('#prompt').textContent=Run.heard
-    ? (Phase==='review' ? ('Tap each letter: '+Word.w.split('').join(' · ')) : (Run.gym?'Spell it to strike the gym leader.':'Tap the letters in order.'))
-    : (Run.gym?(info.leader+' wants '+gymNeed(Run.route)+' words in a row. Tap to hear.'):'Tap the speaker. Then spell what you hear.');
+    ? (Phase==='review' ? ('Tap each letter: '+Word.w.split('').join(' · ')) : (Run.route==='5'?'Spell the missing word.':(Run.gym?'Spell it to strike the gym leader.':'Tap the letters in order.')))
+    : (Run.route==='5'?'Read the sentence, then tap to hear it.':(Run.gym?(info.leader+' wants '+gymNeed(Run.route)+' words in a row. Tap to hear.'):'Tap the speaker. Then spell what you hear.'));
   $('#hintBtn').disabled=Phase!=='spell'||Run.hints<=0;
   $('#hintBtn').textContent='Hint · '+Run.hints;
-  $('#keyMode').textContent=S.keyboard?'Letter tiles':'A–Z keyboard';
+  $('#keyMode').textContent=Run.keyboard?'Letter tiles':'A–Z keyboard';
   if(Run.heard) paintLetters();
 }
 function paintHearts(){
@@ -702,6 +746,10 @@ function paintSlots(reveal){
   var box=$('#slots');
   box.innerHTML='';
   if(!Word) return;
+  var cols=Word.w.length>8?Math.ceil(Word.w.length/2):Word.w.length;
+  box.style.setProperty('--n', String(Word.w.length));
+  box.style.setProperty('--cols', String(cols));
+  box.style.gridTemplateColumns='repeat('+cols+',minmax(0,1fr))';
   for(var i=0;i<Word.w.length;i++){
     var d=document.createElement('div');
     var showLetter=reveal||i<Run.progress;
@@ -711,10 +759,10 @@ function paintSlots(reveal){
   }
 }
 function paintLetters(){
-  if(S.keyboard) paintKeys();
+  if(Run.keyboard) paintKeys();
   else paintTiles();
-  $('#tiles').hidden=!!S.keyboard;
-  $('#keys').hidden=!S.keyboard;
+  $('#tiles').hidden=!!Run.keyboard;
+  $('#keys').hidden=!Run.keyboard;
 }
 function paintTiles(){
   var box=$('#tiles');
@@ -735,7 +783,9 @@ function paintKeys(){
   var box=$('#keys');
   box.innerHTML='';
   var rows=['abcdefg','hijklmn','opqrstu','vwxyz'];
-  rows.join('').split('').forEach(function(ch){
+  var chars=rows.join('').split('');
+  if(Word&&Word.w.indexOf("'")>=0) chars.push("'");
+  chars.forEach(function(ch){
     var b=document.createElement('button');
     b.type='button';
     b.className='key chunky';
@@ -885,12 +935,12 @@ $('#hear').addEventListener('click',function(){
   unlockAudio();
   SFX.tap();
   if(!Word) return;
-  speak(Word.w);
+  speak(voiceLine());
   Run.heard=true;
   Phase='spell';
   paintPlay();
 });
-$('#replay').addEventListener('click',function(){unlockAudio();SFX.tap(); if(Word) speak(Word.w);});
+$('#replay').addEventListener('click',function(){unlockAudio();SFX.tap(); if(Word) speak(voiceLine());});
 $('#sentence').addEventListener('click',function(){unlockAudio();SFX.tap(); if(Word) speak(Word.sentence);});
 $('#hintBtn').addEventListener('click',function(){
   if(Phase!=='spell'||!Run||Run.hints<=0||!Word) return;
@@ -910,9 +960,11 @@ $('#hintBtn').addEventListener('click',function(){
   },2000);
 });
 $('#keyMode').addEventListener('click',function(){
-  S.keyboard=!S.keyboard; save(); SFX.tap();
-  if(Run&&Run.heard) paintPlay();
-  else $('#keyMode').textContent=S.keyboard?'Letter tiles':'A–Z keyboard';
+  if(!Run) return;
+  Run.keyboard=!Run.keyboard;
+  SFX.tap();
+  if(Run.heard) paintPlay();
+  else $('#keyMode').textContent=Run.keyboard?'Letter tiles':'A–Z keyboard';
 });
 $('#playBack').addEventListener('click',function(){
   SFX.tap(); hush();
