@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Word Quest">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#3a2370">
+<meta name="description" content="Pikachu's Word Quest — a Pokémon spelling game for Oliver.">
+<title>Pikachu's Word Quest</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%23ffd21f'/%3E%3Cpath%20d='M36%206%20L14%2036%20h16%20L26%2058%20L50%2026%20H34z'%20fill='%233b2a10'/%3E%3C/svg%3E">
+<style>
+:root{
+  --ink:#3b2a10; --paper:#fff8e8; --red:#ff5a5f; --blue:#3d8bff; --green:#2fbf71; --orange:#ff9f1c;
+  --yellow:#ffd21f; --purple:#6d4ad4;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+[hidden]{display:none !important;}
+html,body{margin:0;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;}
+body{
+  font-family:"Arial Rounded MT Bold","Nunito","Varela Round","Trebuchet MS",system-ui,-apple-system,sans-serif;
+  color:var(--ink);background:#2a1858;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+}
+button,a{font-family:inherit;color:inherit;touch-action:manipulation;cursor:pointer;}
+button{border:none;background:none;-webkit-appearance:none;appearance:none;}
+textarea{font-family:inherit;-webkit-user-select:text;user-select:text;}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;padding:var(--sat) var(--sar) var(--sab) var(--sal);min-height:0;}
+.screen.active{display:flex;}
+.scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 14px 18px;}
+.topbar{display:flex;align-items:center;gap:8px;padding:8px 10px;flex:none;}
+.topbar h2{margin:0;font-size:clamp(18px,3vh,28px);color:#fff;text-shadow:0 2px 0 #241448;min-width:0}
+#play .topbar h2{font-size:clamp(15px,4.2vw,26px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:34vw}
+.topbar .spacer{flex:1}
+.pill{background:#fff;border-radius:999px;padding:6px 12px;font-weight:900;font-size:clamp(14px,2.2vh,18px);box-shadow:0 3px 0 rgba(0,0,0,.18);white-space:nowrap;}
+.iconbtn{width:48px;height:48px;border-radius:50%;background:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.2);flex:none;text-decoration:none;}
+.iconbtn:active{transform:translateY(2px);}
+.chunky{border-radius:18px;font-weight:900;box-shadow:0 5px 0 rgba(0,0,0,.25);}
+.chunky:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25);}
+.chunky:disabled{opacity:.45;transform:none;}
+.big{font-size:clamp(18px,3vh,26px);padding:12px 18px;color:#fff;background:var(--blue);border-radius:18px;font-weight:900;box-shadow:0 5px 0 rgba(0,0,0,.25);}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25);}
+.big.g{background:var(--green)}.big.r{background:var(--red)}.big.o{background:var(--orange)}.big.gray{background:#90a4ae}
+#title{align-items:center;justify-content:center;text-align:center;background:
+  radial-gradient(circle at 50% 16%,#ffe58a 0 8%,transparent 9%),
+  linear-gradient(#7ec8ff 0%,#d7f1ff 42%,#6d4ad4 42.2%,#2a1858 100%);overflow:auto;}
+#title h1{margin:4px 0 0;font-size:clamp(32px,8vmin,68px);line-height:.95;color:#fff;text-shadow:0 4px 0 #e85d04,0 8px 0 #6d28d9;}
+#title h1 small{display:block;font-size:.42em;color:#3b2a10;text-shadow:0 2px 0 #fff;margin-bottom:4px}
+.hi{font-weight:900;font-size:clamp(18px,3vmin,26px);background:#fff;border-radius:14px;padding:6px 12px;margin:8px 0}
+#title .pika{width:min(42vw,200px);height:min(24vh,200px);display:flex;align-items:center;justify-content:center}
+#title .pika img{max-width:100%;max-height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+#goBtn{font-size:clamp(28px,6vmin,46px);padding:14px 40px;background:var(--red);color:#fff;margin-top:8px}
+.rowbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.backlink{position:absolute;top:calc(var(--sat) + 10px);left:calc(var(--sal) + 10px);font-weight:900;text-decoration:none;background:#fff;color:var(--ink);padding:8px 12px;border-radius:999px;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+#title .corner{position:absolute;top:calc(var(--sat) + 10px);right:calc(var(--sar) + 10px);display:flex;gap:8px}
+#map{background:linear-gradient(#5b3cae,#2a1858 46%,#1b1038);}
+.routes{display:flex;flex-direction:column;gap:12px;max-width:720px;margin:0 auto}
+.rcard{background:var(--paper);border-radius:20px;padding:12px;text-align:left;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+.rcard.locked{opacity:.55}
+.rcard b{display:block;font-size:clamp(18px,2.6vh,24px)}
+.rcard .sub{font-weight:800;opacity:.75;margin:2px 0 8px}
+.rcard .prog{font-weight:900;margin-bottom:8px}
+.rbtns{display:flex;gap:8px;flex-wrap:wrap}
+.rbtns .big{flex:1;min-width:140px}
+#play{background:linear-gradient(#241448,#3a2370);}
+.stage{flex:1;display:flex;flex-direction:column;min-height:0;width:100%;max-width:1100px;margin:0 auto}
+.arena{
+  flex:none;height:min(26vh,210px);margin:0 10px;border-radius:22px;position:relative;
+  display:flex;align-items:flex-end;justify-content:space-between;padding:8px 12px 10px;overflow:hidden;
+  background:linear-gradient(#9ad7ff 0%,#e5f6ff 52%,#8ee07a 52.4%,#3ea84a 100%);
+  box-shadow:inset 0 -8px 0 rgba(0,0,0,.08);
+}
+.pk{width:46%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;min-width:0}
+.pk.foe{align-items:flex-end}
+.pk.me{align-items:flex-start}
+#foeSlot,#meSlot{flex:0 0 auto;height:clamp(96px,18vh,180px);width:100%;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.pk.foe #foeSlot{justify-content:flex-end}
+.pk.me #meSlot{justify-content:flex-start}
+.pk img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 6px 0 rgba(0,0,0,.18))}
+.pk .nm{font-weight:900;background:rgba(255,255,255,.92);border-radius:999px;padding:2px 8px;font-size:14px;margin-top:2px}
+.fallback{width:86px;height:86px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#fff}
+.hasimg>.fallback{display:none}
+#zap{position:absolute;left:58%;top:28%;font-size:64px;opacity:0;pointer-events:none;z-index:3;filter:drop-shadow(0 0 6px #fff)}
+#zap.on{animation:zap .32s ease-out}
+@keyframes zap{0%{opacity:0;transform:translate(-20px,16px) scale(.4)}35%{opacity:1;transform:translate(10px,-16px) scale(1.15)}100%{opacity:0;transform:translate(24px,-36px) scale(.7)}}
+.flash{animation:flash .32s linear}
+@keyframes flash{0%,100%{filter:drop-shadow(0 6px 0 rgba(0,0,0,.18))}40%{filter:brightness(2.2) drop-shadow(0 0 10px #ffe600)}}
+.runoff{animation:runoff .45s ease-in forwards}
+@keyframes runoff{to{transform:translateX(80px);opacity:0}}
+.panel{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 12px 10px}
+.slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
+.slot{width:clamp(42px,10vw,64px);height:clamp(50px,12vw,72px);border-radius:14px;background:rgba(255,255,255,.2);border:3px dashed rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-size:clamp(28px,6vw,44px);font-weight:900;color:#fff;text-transform:lowercase}
+.slot.filled{background:#fff4c2;color:var(--ink);border-style:solid;border-color:#ffd21f;animation:pop .18s ease-out}
+.slot.reveal{background:#fff;color:#6d28d9;border-style:solid;border-color:#fff}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+#prompt{text-align:center;font-weight:900;color:#ffe9a8;min-height:1.3em;font-size:clamp(15px,2.2vh,20px);flex:none}
+.tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex:none}
+.tools .big{min-height:52px}
+#tiles,#keys{flex:1;min-height:0;overflow:auto;display:grid;gap:8px;align-content:start}
+#tiles{grid-template-columns:repeat(3,1fr)}
+#keys{grid-template-columns:repeat(7,1fr);gap:6px}
+.tile,.key{
+  min-height:68px;font-size:clamp(26px,5vh,40px);color:#fff;text-transform:lowercase;
+  background:var(--blue);
+}
+.tile:nth-child(4n+1),.key:nth-child(4n+1){background:var(--red)}
+.tile:nth-child(4n+2),.key:nth-child(4n+2){background:var(--blue)}
+.tile:nth-child(4n+3),.key:nth-child(4n+3){background:var(--green)}
+.tile:nth-child(4n+4),.key:nth-child(4n+4){background:var(--orange)}
+.key{min-height:52px;font-size:clamp(18px,3vh,28px)}
+.tile.used{opacity:.28}
+.tile.next{outline:4px solid #ffe600}
+.tile.shake,.key.shake{animation:shake .32s linear}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+.foot{display:flex;gap:8px;flex:none}
+.foot .big{flex:1}
+.hearts{font-size:22px;letter-spacing:2px}
+.hearts i{font-style:normal;opacity:.28}
+.hearts i.on{opacity:1}
+#dex{background:linear-gradient(#5b3cae,#1b1038);}
+.dexgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;max-width:900px;margin:0 auto}
+.dcard{background:var(--paper);border-radius:16px;padding:8px;text-align:center;font-weight:900}
+.dcard .slot{height:84px;display:flex;align-items:center;justify-content:center;position:relative}
+.dcard img{width:84px;height:84px;object-fit:contain;image-rendering:pixelated}
+#parent{background:#f4f7fb;color:#243044}
+#parent .topbar h2{color:#243044;text-shadow:none}
+#parent .scroll{font-family:system-ui,-apple-system,sans-serif;font-weight:600}
+.psec{background:#fff;border-radius:16px;padding:12px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.psec h3{margin:0 0 8px}
+#weekly{width:100%;min-height:110px;font-size:18px;border-radius:12px;border:3px solid #d0d7e2;padding:8px}
+.pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.pcard{background:#fff3c4;border-radius:12px;padding:8px;font-weight:900}
+.pcard b{display:block;font-size:20px}
+#resultOv,#gateOv,#confirmOv{position:fixed;inset:0;z-index:40;display:none;padding:var(--sat) var(--sar) var(--sab) var(--sal);background:rgba(18,8,40,.72)}
+#resultOv.show,#gateOv.show,#confirmOv.show{display:flex}
+.card{margin:auto;background:var(--paper);border-radius:26px;padding:16px;width:min(520px,100%);text-align:center;box-shadow:0 10px 0 rgba(0,0,0,.28);max-height:100%;overflow:auto}
+#resultSprite{height:140px;display:flex;align-items:center;justify-content:center}
+#resultSprite img{max-height:130px;image-rendering:pixelated}
+#resultWord{font-size:clamp(28px,6vh,48px);font-weight:900;letter-spacing:2px;margin:6px 0}
+#gateIn{font-size:28px;width:140px;text-align:center;border:3px solid #ccc;border-radius:14px;padding:8px}
+#toast{position:fixed;left:50%;bottom:calc(var(--sab) + 16px);transform:translateX(-50%);background:#2a2040;color:#fff;padding:10px 16px;border-radius:999px;font-weight:900;z-index:80;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media (max-width:420px){
+  #play .pill{padding:4px 8px;font-size:13px}
+  #play .iconbtn{width:42px;height:42px;font-size:18px}
+  .hearts{font-size:16px;letter-spacing:0}
+}
+@media (min-width:700px){
+  #tiles{grid-template-columns:repeat(4,1fr)}
+  .key{min-height:58px}
+}
+@media (min-width:900px){
+  .stage{flex-direction:row;align-items:stretch;padding-bottom:10px}
+  .arena{flex:1 1 46%;height:auto;margin:0 0 0 12px;min-height:280px}
+  .panel{flex:1 1 50%}
+}
+@media (max-height:520px) and (orientation:landscape){
+  .arena{height:40vh}
+  .tile{min-height:48px;font-size:24px}
+  #title .pika{height:18vh}
+}
+</style>
+</head>
+<body data-version="wq1">
+<section id="title" class="screen active">
+  <a class="backlink" href="../">← Thunder Times</a>
+  <div class="corner">
+    <button class="iconbtn muteBtn" type="button" aria-label="Sound">🔊</button>
+    <button class="iconbtn" id="titleGear" type="button" aria-label="Parent settings">⚙️</button>
+  </div>
+  <div class="pika bob" id="titlePika"></div>
+  <h1><small>Pikachu's</small>Word Quest</h1>
+  <div class="hi">Hi, Oliver!</div>
+  <div class="pill" id="titleLv">Pikachu Lv.1</div>
+  <button id="goBtn" class="chunky" type="button">▶ PLAY</button>
+  <div class="rowbtns">
+    <button id="titleDex" class="big o chunky" type="button">Pokédex</button>
+  </div>
+</section>
+
+<section id="map" class="screen">
+  <div class="topbar">
+    <button class="iconbtn" id="mapBack" type="button" aria-label="Back">⬅️</button>
+    <h2>Word Quest</h2>
+    <div class="spacer"></div>
+    <div class="pill" id="mapLv">Lv.1</div>
+    <button class="iconbtn" id="mapDex" type="button" aria-label="Pokédex">📖</button>
+    <button class="iconbtn muteBtn" type="button" aria-label="Sound">🔊</button>
+  </div>
+  <div class="scroll"><div class="routes" id="routeList"></div></div>
+</section>
+
+<section id="play" class="screen">
+  <div class="topbar">
+    <button class="iconbtn" id="playBack" type="button" aria-label="Back to routes">⬅️</button>
+    <h2 id="playTitle">Route</h2>
+    <div class="spacer"></div>
+    <div class="pill hearts" id="hearts" aria-label="Hearts"></div>
+    <div class="pill" id="scorePill">0/8</div>
+    <button class="iconbtn muteBtn" type="button" aria-label="Sound">🔊</button>
+  </div>
+  <div class="stage">
+    <div class="arena" id="arena">
+      <div class="pk foe"><div id="foeSlot"></div><div class="nm" id="foeName">Wild</div></div>
+      <div class="pk me"><div id="meSlot"></div><div class="nm" id="meName">Pikachu Lv.1</div></div>
+      <div id="zap" aria-hidden="true">⚡</div>
+    </div>
+    <div class="panel">
+      <div class="slots" id="slots" aria-live="polite"></div>
+      <div id="prompt">Tap the speaker. Then spell what you hear.</div>
+      <div class="tools">
+        <button id="hear" class="big r chunky" type="button">🔊 Hear the word</button>
+        <button id="replay" class="big chunky" type="button" hidden>🔊 Again</button>
+        <button id="sentence" class="big o chunky" type="button" hidden>Sentence</button>
+      </div>
+      <div id="tiles"></div>
+      <div id="keys" hidden></div>
+      <div class="foot">
+        <button id="hintBtn" class="big gray chunky" type="button">Hint · 3</button>
+        <button id="keyMode" class="big chunky" type="button">A–Z keyboard</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="dex" class="screen">
+  <div class="topbar">
+    <button class="iconbtn" id="dexBack" type="button" aria-label="Back">⬅️</button>
+    <h2>Pokédex</h2>
+    <div class="spacer"></div>
+    <button class="iconbtn muteBtn" type="button" aria-label="Sound">🔊</button>
+  </div>
+  <div class="scroll"><div class="dexgrid" id="dexGrid"></div></div>
+</section>
+
+<section id="parent" class="screen">
+  <div class="topbar">
+    <button class="iconbtn" id="parBack" type="button" aria-label="Back">⬅️</button>
+    <h2>Parent corner</h2>
+  </div>
+  <div class="scroll" id="parentBody"></div>
+</section>
+
+<div id="resultOv">
+  <div class="card">
+    <div id="resultSprite"></div>
+    <h2 id="resultTitle"></h2>
+    <div id="resultWord"></div>
+    <p id="resultText"></p>
+    <button id="resultNext" class="big g chunky" type="button">Next</button>
+  </div>
+</div>
+
+<div id="gateOv"><div class="card">
+  <h2>Grown-ups only</h2>
+  <p>Solve this to open Parent Corner: <b id="gateQ"></b></p>
+  <input id="gateIn" inputmode="numeric" autocomplete="off" aria-label="Answer">
+  <div class="rowbtns">
+    <button id="gateCancel" class="big gray" type="button">Cancel</button>
+    <button id="gateGo" class="big g" type="button">Enter</button>
+  </div>
+</div></div>
+
+<div id="confirmOv"><div class="card">
+  <h2>Erase Word Quest progress?</h2>
+  <p>Pikachu stays. Routes, the Pokédex, XP, and the school list are cleared.</p>
+  <div class="rowbtns">
+    <button id="cfNo" class="big gray" type="button">Keep it</button>
+    <button id="cfYes" class="big r" type="button">Yes, erase</button>
+  </div>
+</div></div>
+
+<div id="toast"></div>
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s);};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
+var SPRITE='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+var KEY='word-quest-v1';
+
+var MONS={
+  1:{n:'Bulbasaur',color:'#78c850'},3:{n:'Venusaur',color:'#78c850'},4:{n:'Charmander',color:'#f08030'},
+  6:{n:'Charizard',color:'#f08030'},7:{n:'Squirtle',color:'#6890f0'},9:{n:'Blastoise',color:'#6890f0'},
+  10:{n:'Caterpie',color:'#a8b820'},13:{n:'Weedle',color:'#a8b820'},16:{n:'Pidgey',color:'#a890f0'},
+  19:{n:'Rattata',color:'#a8a878'},21:{n:'Spearow',color:'#a890f0'},25:{n:'Pikachu',color:'#f8d030'},
+  26:{n:'Raichu',color:'#f8d030'},27:{n:'Sandshrew',color:'#e0c068'},37:{n:'Vulpix',color:'#f08030'},
+  39:{n:'Jigglypuff',color:'#ee99ac'},41:{n:'Zubat',color:'#a040a0'},43:{n:'Oddish',color:'#78c850'},
+  45:{n:'Vileplume',color:'#78c850'},50:{n:'Diglett',color:'#e0c068'},52:{n:'Meowth',color:'#a8a878'},
+  54:{n:'Psyduck',color:'#6890f0'},58:{n:'Growlithe',color:'#f08030'},59:{n:'Arcanine',color:'#f08030'},
+  60:{n:'Poliwag',color:'#6890f0'},63:{n:'Abra',color:'#f85888'},65:{n:'Alakazam',color:'#f85888'},
+  66:{n:'Machop',color:'#c03028'},68:{n:'Machamp',color:'#c03028'},74:{n:'Geodude',color:'#b8a038'},
+  77:{n:'Ponyta',color:'#f08030'},79:{n:'Slowpoke',color:'#6890f0'},81:{n:'Magnemite',color:'#f8d030'},
+  92:{n:'Gastly',color:'#705898'},93:{n:'Haunter',color:'#705898'},94:{n:'Gengar',color:'#705898'},
+  95:{n:'Onix',color:'#b8a038'},104:{n:'Cubone',color:'#e0c068'},113:{n:'Chansey',color:'#f8d8d0'},
+  120:{n:'Staryu',color:'#6890f0'},121:{n:'Starmie',color:'#6890f0'},123:{n:'Scyther',color:'#a8b820'},
+  126:{n:'Magmar',color:'#f08030'},127:{n:'Pinsir',color:'#a8b820'},129:{n:'Magikarp',color:'#6890f0'},
+  130:{n:'Gyarados',color:'#6890f0'},131:{n:'Lapras',color:'#6890f0'},133:{n:'Eevee',color:'#a8a878'},
+  134:{n:'Vaporeon',color:'#6890f0'},135:{n:'Jolteon',color:'#f8d030'},136:{n:'Flareon',color:'#f08030'},
+  143:{n:'Snorlax',color:'#a8a878'},144:{n:'Articuno',color:'#98d8d8'},145:{n:'Zapdos',color:'#f8d030'},
+  146:{n:'Moltres',color:'#f08030'},148:{n:'Dragonair',color:'#7038f8'},149:{n:'Dragonite',color:'#7038f8'},
+  150:{n:'Mewtwo',color:'#f85888'},151:{n:'Mew',color:'#f85888'}
+};
+
+function pair(list){
+  return list.map(function(line){
+    var i=line.indexOf('|');
+    return {w:line.slice(0,i), s:line.slice(i+1)};
+  });
+}
+var ROUTES=[
+  {id:'1', name:'Leafy Path', teach:'3-letter words', sample:'cat, dog, sun', leader:'Brock', badge:'Boulder', gym:95, wild:[16,19,10,13,21,43,129,60],
+   words:pair([
+    'cat|The cat sat on a mat.','dog|The dog ran to me.','sun|The sun is bright.','hat|Dad has a red hat.','pig|The pig is in the mud.','cup|The cup is full.','bed|It is time for bed.','map|We read the map.','pen|I write with a pen.','bus|We ride the bus.','fox|The fox is quick.','jam|Toast with jam is yummy.','lip|I bit my lip.','nut|The squirrel hid a nut.','rug|The cat is on the rug.','van|The van is blue.','web|A spider made a web.','box|The toy is in the box.','fin|The fish has a fin.','hop|Bunnies hop in the grass.','kit|The kit is a baby fox.','log|We sat on a log.','mud|Boots get full of mud.','net|The ball is in the net.','pot|Soup is in the pot.','red|The apple is red.','sip|I sip the water.','top|The top can spin.','wig|The clown has a wig.','zip|Zip up your coat.','bat|The bat flies at night.','hen|The hen laid an egg.','jet|A jet flies fast.','mom|I love my mom.','run|I can run fast.','sit|Please sit with me.'
+   ])},
+  {id:'2', name:'Brook Bend', teach:'4-letter words and blends', sample:'frog, stop, clap', leader:'Misty', badge:'Cascade', gym:121, wild:[52,37,58,54,39,27,74,50],
+   words:pair([
+    'frog|A frog sits on a log.','stop|The sign says stop.','clap|We clap for Pikachu.','drum|He plays the drum.','flag|The flag is waving.','grin|She has a big grin.','plum|The plum is sweet.','snap|I snap my fingers.','swim|We swim in the pool.','trip|We take a trip.','crab|A crab walks sideways.','drip|Raindrops drip down.','flip|Watch me flip.','glad|I am glad you came.','grab|Grab your backpack.','plan|We plan a picnic.','skip|We skip down the path.','slip|Do not slip on the ice.','spin|The wheel can spin.','trap|The mouse sees the trap.','best|You did your best.','camp|We camp by the lake.','desk|Books are on the desk.','fast|The bike is fast.','hand|Hold my hand.','jump|Pikachu can jump.','lamp|The lamp is bright.','milk|I drink milk.','nest|Eggs are in the nest.','sand|Toes wiggle in the sand.','tent|We sleep in a tent.','wind|The wind is strong.','gift|A gift is in the box.','help|I can help you.','just|We just got home.','left|Turn left at the tree.'
+   ])},
+  {id:'3', name:'Shimmer Shore', teach:'sh, ch, th, and ck', sample:'ship, chin, duck', leader:'Surge', badge:'Thunder', gym:26, wild:[41,81,92,63,66,104,120,133],
+   words:pair([
+    'ship|The ship sails away.','shop|We shop for apples.','fish|The fish swims fast.','wish|Make a wish.','dish|The dish is clean.','rush|Do not rush.','chat|We chat with friends.','chin|He rubbed his chin.','chop|Chop the carrot.','much|Thank you so much.','rich|The soil is rich.','such|It is such a nice day.','thin|The ice is thin.','then|Wash, then dry.','bath|It is bath time.','math|Math can be fun.','path|Stay on the path.','with|Come with me.','duck|The duck says quack.','back|Come back soon.','pack|Pack your bag.','sock|I lost one sock.','rock|A rock is in the path.','kick|Kick the ball.','lock|Lock the gate.','luck|Good luck today.','shock|The shock was a surprise.','thick|The blanket is thick.','check|Check your spelling.','shack|The shack is by the sea.','thumb|Thumbs up.','bench|We sit on the bench.'
+   ])},
+  {id:'4', name:'Silent Cave', teach:'silent e and long vowels', sample:'cake, bike, home', leader:'Erika', badge:'Rainbow', gym:45, wild:[1,4,7,77,79,93,123,127],
+   words:pair([
+    'cake|We bake a cake.','bike|I ride my bike.','home|Home is warm.','cute|The puppy is cute.','kite|The kite is in the sky.','rope|Hold the rope.','game|We play a game.','lake|Fish live in the lake.','name|My name is Oliver.','tape|Tape the paper.','wave|Wave at the boat.','bone|The dog wants a bone.','nose|A clown has a red nose.','note|I wrote a note.','rose|The rose is red.','huge|The whale is huge.','tune|Hum a tune.','five|I have five fingers.','line|Stand in a line.','mine|That book is mine.','nine|Nine is after eight.','ride|We ride the bus.','time|It is time for lunch.','gate|Close the gate.','late|Do not be late.','made|We made a card.','same|We have the same hat.','hope|I hope it is sunny.','joke|That joke is funny.','rule|One rule is be kind.','these|These socks match.','pine|A pine tree is tall.'
+   ])},
+  {id:'5', name:'Team Tree', teach:'vowel teams', sample:'rain, boat, tree', leader:'Koga', badge:'Soul', gym:94, wild:[131,134,135,136,59,6,9,3],
+   words:pair([
+    'rain|Rain falls on the roof.','boat|The boat floats.','tree|A bird is in the tree.','seed|Plant a seed.','feet|Two feet, ten toes.','keep|Keep trying.','team|We are a team.','leaf|A leaf fell down.','road|The road is long.','toad|A toad hops by.','coat|Wear a warm coat.','soap|Soap makes bubbles.','moon|The moon is bright.','food|Food gives us energy.','pool|We swim in the pool.','room|This room is cozy.','book|I read a book.','look|Look at the stars.','cook|Dad can cook.','good|That was a good try.','play|We play outside.','stay|Stay with the group.','tail|The dog wags its tail.','mail|The mail is here.','wait|Wait for the walk sign.','pain|A hug can help pain.','blue|The sky is blue.','glue|Glue sticks paper.','beach|We play at the beach.','toast|Toast with jam.','sheep|Sheep have soft wool.','train|The train goes fast.'
+   ])},
+  {id:'6', name:'Star Bridge', teach:'r-controlled and sight words', sample:'star, friend, said', leader:'Sabrina', badge:'Marsh', gym:65, wild:[68,148,130,143,59,6,9,3],
+   words:pair([
+    'car|The car is red.','star|I see a bright star.','farm|Cows live on a farm.','park|We play at the park.','bird|A bird can sing.','girl|The girl reads.','first|You are first in line.','turn|Take a turn.','her|Her hat is yellow.','corn|Corn grows tall.','fork|Use a fork.','because|I smile because I am happy.','friend|A friend shares.','said|Mom said hello.','they|They play tag.','were|We were at the park.','where|Where is my sock?','could|I could help you.','would|I would like a turn.','should|We should be kind.','people|People can be helpers.','water|Water keeps us strong.','again|Let us try again.','about|This book is about dogs.','their|Their dog is fluffy.','there|The ball is over there.','what|What is your name?','when|When is lunch?','which|Which book do you want?','your|Your smile is bright.','have|I have a pencil.','come|Come play with me.'
+   ])},
+  {id:'7', name:'Thunder Peak', teach:'bigger words', sample:'apple, tiger, thunder', leader:'Blaine', badge:'Volcano', gym:126, wild:[149,150,144,145,146,151,95,121],
+   words:pair([
+    'apple|An apple is crunchy.','tiger|A tiger has stripes.','puppy|The puppy is soft.','happy|I feel happy.','little|A little bug crawled by.','letter|I wrote a letter.','summer|Summer days are warm.','winter|Winter can be snowy.','rabbit|A rabbit has long ears.','kitten|The kitten likes yarn.','yellow|The sun looks yellow.','purple|Grapes can be purple.','garden|Flowers grow in the garden.','pencil|Sharpen the pencil.','window|Look out the window.','sister|My sister laughs.','brother|My brother builds.','family|Family eats together.','morning|Morning starts the day.','teacher|The teacher helps us.','reading|Reading opens worlds.','birthday|Birthday cake is sweet.','sandwich|A sandwich is in the bag.','butterfly|A butterfly has bright wings.','dinosaur|A dinosaur was huge.','thunder|Thunder follows lightning.','animal|Every animal needs care.','remember|Remember to be kind.'
+   ])}
+];
+var ROUTE_BY={};
+ROUTES.forEach(function(r){ROUTE_BY[r.id]=r;});
+var SCHOOL={id:'school', name:'School List', teach:'This week at school', sample:'words you add', leader:'Teacher', badge:'Star', gym:113, wild:[133,39,52,16]};
+
+function blankRoute(){return {badge:false, cleared:0, correct:0, wrong:0};}
+function defaults(){
+  var routes={school:blankRoute()}, decks={school:{remaining:[], last:'', seen:[]}};
+  ROUTES.forEach(function(r){routes[r.id]=blankRoute(); decks[r.id]={remaining:[], last:'', seen:[]};});
+  return {v:1, muted:false, xp:0, keyboard:false, pokedex:{'25':{id:25, count:1}}, routes:routes, decks:decks, stats:{}, schoolWords:[], schoolText:''};
+}
+function sanitize(s){
+  var d=defaults();
+  if(!s||s.v!==1) return d;
+  d.muted=!!s.muted;
+  d.keyboard=!!s.keyboard;
+  d.xp=Math.max(0,Math.floor(+s.xp||0));
+  d.schoolText=typeof s.schoolText==='string'?s.schoolText.slice(0,2000):'';
+  if(Array.isArray(s.schoolWords)){
+    s.schoolWords.forEach(function(w){
+      if(typeof w!=='string') return;
+      w=w.toLowerCase();
+      if(/^[a-z]{2,14}$/.test(w) && d.schoolWords.indexOf(w)<0 && d.schoolWords.length<40) d.schoolWords.push(w);
+    });
+  }
+  ['school'].concat(ROUTES.map(function(r){return r.id;})).forEach(function(id){
+    var r=s.routes&&s.routes[id];
+    if(r&&typeof r==='object'){
+      d.routes[id]={
+        badge:!!r.badge,
+        cleared:Math.max(0,Math.floor(+r.cleared||0)),
+        correct:Math.max(0,Math.floor(+r.correct||0)),
+        wrong:Math.max(0,Math.floor(+r.wrong||0))
+      };
+    }
+    var deck=s.decks&&s.decks[id];
+    if(deck&&typeof deck==='object'){
+      var allow=wordList(id,d);
+      var ok={}; allow.forEach(function(w){ok[w]=1;});
+      var rem=[], seen=[];
+      (Array.isArray(deck.remaining)?deck.remaining:[]).forEach(function(w){ if(ok[w]) rem.push(w); });
+      (Array.isArray(deck.seen)?deck.seen:[]).forEach(function(w){ if(ok[w]&&seen.indexOf(w)<0) seen.push(w); });
+      var last=(typeof deck.last==='string'&&ok[deck.last])?deck.last:'';
+      d.decks[id]={remaining:rem, last:last, seen:seen};
+    }
+  });
+  if(s.pokedex&&typeof s.pokedex==='object'){
+    Object.keys(s.pokedex).forEach(function(id){
+      if(!MONS[+id]) return;
+      var c=s.pokedex[id];
+      d.pokedex[id]={id:+id, count:Math.max(1,Math.floor(+(c&&c.count)||1))};
+    });
+  }
+  if(!d.pokedex['25']) d.pokedex['25']={id:25, count:1};
+  if(s.stats&&typeof s.stats==='object'){
+    Object.keys(s.stats).forEach(function(w){
+      if(!/^[a-z]{2,14}$/.test(w)) return;
+      var f=s.stats[w];
+      if(!f||typeof f!=='object') return;
+      d.stats[w]={r:Math.max(0,Math.floor(+f.r||0)), w:Math.max(0,Math.floor(+f.w||0))};
+    });
+  }
+  return d;
+}
+function wordList(id, state){
+  state=state||S;
+  if(id==='school') return (state.schoolWords||[]).slice();
+  var r=ROUTE_BY[id];
+  return r?r.words.map(function(x){return x.w;}):[];
+}
+function sentenceFor(id,w){
+  if(id==='school') return 'This week we spell '+w+'.';
+  var r=ROUTE_BY[id];
+  if(!r) return 'I can spell '+w+'.';
+  for(var i=0;i<r.words.length;i++) if(r.words[i].w===w) return r.words[i].s;
+  return 'I can spell '+w+'.';
+}
+function routeInfo(id){return id==='school'?SCHOOL:ROUTE_BY[id];}
+function levelFor(xp){return 1+Math.floor((xp||0)/40);}
+function gymNeed(id){return Math.max(1, Math.min(5, wordList(id).length));}
+function beforeGym(id){return Math.max(1, Math.min(8, wordList(id).length));}
+function unlocked(index){
+  if(index===0) return true;
+  return !!(S.routes[ROUTES[index-1].id]&&S.routes[ROUTES[index-1].id].badge);
+}
+
+function load(){
+  try{return sanitize(JSON.parse(localStorage.getItem(KEY)||'null'));}
+  catch(e){return defaults();}
+}
+var S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+function rnd(n){return Math.floor(Math.random()*n);}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show');},1600);}
+function show(id){$$('.screen').forEach(function(s){s.classList.toggle('active', s.id===id);});}
+var returnTo='title';
+
+function syncDeck(id){
+  var words=wordList(id);
+  var d=S.decks[id]||(S.decks[id]={remaining:[], last:'', seen:[]});
+  if(!Array.isArray(d.seen)) d.seen=[];
+  if(!Array.isArray(d.remaining)) d.remaining=[];
+  var allow={};
+  words.forEach(function(w){allow[w]=1;});
+  d.remaining=d.remaining.filter(function(w){return allow[w];});
+  d.seen=d.seen.filter(function(w){return allow[w];});
+  if(d.last&&!allow[d.last]) d.last='';
+  var seen={};
+  d.seen.forEach(function(w){seen[w]=1;});
+  var neu=[];
+  words.forEach(function(w){ if(!seen[w]) neu.push(w); });
+  shuffle(neu);
+  if(neu.length){
+    d.remaining=neu.concat(d.remaining);
+    neu.forEach(function(w){ d.seen.push(w); });
+  }
+  if(!d.remaining.length&&words.length){
+    var fresh=shuffle(words.slice());
+    if(fresh.length>1&&fresh[0]===d.last){var t=fresh[0];fresh[0]=fresh[1];fresh[1]=t;}
+    d.remaining=fresh;
+  }
+  return d;
+}
+function drawWord(id){
+  var d=syncDeck(id);
+  var pick=-1,i;
+  for(i=0;i<d.remaining.length;i++){
+    if(d.remaining[i]!==d.last){pick=i;break;}
+  }
+  if(pick<0) pick=0;
+  var w=d.remaining.splice(pick,1)[0];
+  d.last=w||'';
+  save();
+  return w;
+}
+function missWord(id,w){
+  var d=syncDeck(id);
+  d.remaining=d.remaining.filter(function(x){return x!==w;});
+  var at=Math.min(2,d.remaining.length);
+  d.remaining.splice(at,0,w);
+  d.last=w;
+  save();
+}
+function returnWord(id,w){
+  if(!w) return;
+  var d=syncDeck(id);
+  if(d.remaining.indexOf(w)<0){
+    var at=Math.min(2,d.remaining.length);
+    d.remaining.splice(at,0,w);
+  }
+  d.last=w;
+  save();
+}
+
+var ac=null;
+function unlockAudio(){
+  if(!ac){try{var AC=window.AudioContext||window.webkitAudioContext;if(AC)ac=new AC();}catch(e){ac=null;}}
+  if(ac&&ac.state==='suspended'){try{ac.resume();}catch(e){}}
+}
+['pointerdown','touchend','click','keydown'].forEach(function(ev){
+  document.addEventListener(ev,unlockAudio,{passive:true,capture:true});
+});
+function tone(f,dur,o){
+  o=o||{}; if(!ac||S.muted) return;
+  try{
+    var t=ac.currentTime+(o.delay||0), osc=ac.createOscillator(), g=ac.createGain();
+    osc.type=o.type||'sine'; osc.frequency.setValueAtTime(f,t);
+    if(o.to) osc.frequency.exponentialRampToValueAtTime(Math.max(1,o.to), t+dur);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(o.vol||0.16, t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    osc.connect(g); g.connect(ac.destination); osc.start(t); osc.stop(t+dur+0.02);
+  }catch(e){}
+}
+var SFX={
+  tap:function(){tone(640,0.05,{type:'square',vol:0.05});},
+  ok:function(){tone(523,0.08,{type:'triangle',vol:0.12});tone(784,0.1,{type:'triangle',vol:0.1,delay:0.05});},
+  bad:function(){tone(330,0.14,{vol:0.1,to:180});},
+  zap:function(){tone(880,0.06,{type:'square',vol:0.05});tone(1320,0.08,{type:'triangle',vol:0.08,delay:0.04});},
+  catch:function(){[523,659,784,1046].forEach(function(f,i){tone(f,0.14,{type:'triangle',vol:0.14,delay:i*0.07});});},
+  fan:function(){[523,659,784,1046,784,1046].forEach(function(f,i){tone(f,0.12,{type:'square',vol:0.05,delay:i*0.07});});}
+};
+function refreshMute(){$$('.muteBtn').forEach(function(b){b.textContent=S.muted?'🔇':'🔊';});}
+$$('.muteBtn').forEach(function(b){b.addEventListener('click',function(){S.muted=!S.muted;save();refreshMute();if(!S.muted)SFX.tap();});});
+
+function speak(text){
+  try{
+    var syn=window.speechSynthesis;
+    if(!syn||typeof window.SpeechSynthesisUtterance!=='function') return false;
+    var u=new window.SpeechSynthesisUtterance(text);
+    u.lang='en-US';
+    u.rate=0.8;
+    syn.cancel();
+    syn.speak(u);
+    return true;
+  }catch(e){return false;}
+}
+function hush(){try{if(window.speechSynthesis) window.speechSynthesis.cancel();}catch(e){}}
+
+function mountSprite(el,id,back){
+  var m=MONS[id]||{n:'?',color:'#888'};
+  el.innerHTML='';
+  el.classList.remove('hasimg');
+  var fb=document.createElement('div');
+  fb.className='fallback';
+  fb.style.background=m.color;
+  fb.textContent=m.n.charAt(0);
+  el.appendChild(fb);
+  var img=document.createElement('img');
+  img.alt=m.n;
+  img.draggable=false;
+  var gif=back?SPRITE+'other/showdown/back/'+id+'.gif':SPRITE+'other/showdown/'+id+'.gif';
+  var png=back?SPRITE+'back/'+id+'.png':SPRITE+id+'.png';
+  var step=0;
+  img.onload=function(){if(img.naturalWidth>0) el.classList.add('hasimg');};
+  img.onerror=function(){step++; if(step===1) img.src=png; else img.remove();};
+  img.src=gif;
+  el.appendChild(img);
+}
+
+var Run=null, Word=null, Phase='title', hintToken=0, dexReturn='title';
+
+function paintLevels(){
+  var lv=levelFor(S.xp);
+  $('#titleLv').textContent='Pikachu Lv.'+lv+' · '+S.xp+' XP';
+  if($('#mapLv')) $('#mapLv').textContent='Lv.'+lv;
+  if($('#meName')) $('#meName').textContent='Pikachu Lv.'+lv;
+}
+function renderMap(){
+  var box=$('#routeList');
+  box.innerHTML='';
+  ROUTES.forEach(function(r,index){
+    box.appendChild(routeCard(r,index,unlocked(index)));
+  });
+  if(S.schoolWords.length) box.appendChild(routeCard(SCHOOL,99,true));
+  else{
+    var note=document.createElement('div');
+    note.className='rcard';
+    note.innerHTML='<b>School List</b><div class="sub">A grown-up can add this week’s words in Parent Corner.</div>';
+    box.appendChild(note);
+  }
+  paintLevels();
+}
+function routeCard(r,index,open){
+  var st=S.routes[r.id]||blankRoute();
+  var card=document.createElement('div');
+  card.className='rcard'+(open?'':' locked');
+  var need=beforeGym(r.id);
+  var prog=st.badge?('🏅 '+r.badge+' Badge'):(st.cleared>=need?'Gym battle is ready!':(st.cleared+'/'+need+' catches to the gym'));
+  card.innerHTML='<b>'+r.name+(st.badge?' 🏅':'')+'</b><div class="sub">'+r.teach+' · '+r.sample+'</div><div class="prog">'+prog+'</div>';
+  if(!open){
+    var lock=document.createElement('div');
+    lock.className='sub';
+    lock.textContent='Win the previous badge to open this route.';
+    card.appendChild(lock);
+    return card;
+  }
+  var btns=document.createElement('div');
+  btns.className='rbtns';
+  var go=document.createElement('button');
+  go.type='button';
+  go.className='big g chunky';
+  var gymReady=!st.badge && st.cleared>=need && wordList(r.id).length>0;
+  go.textContent=gymReady?('Gym vs '+r.leader):'Start';
+  go.addEventListener('click',function(){SFX.tap(); startRoute(r.id, gymReady);});
+  btns.appendChild(go);
+  if(st.badge){
+    var rem=document.createElement('button');
+    rem.type='button';
+    rem.className='big o chunky';
+    rem.textContent='Gym rematch';
+    rem.addEventListener('click',function(){SFX.tap(); startRoute(r.id, true);});
+    btns.appendChild(rem);
+  }
+  card.appendChild(btns);
+  return card;
+}
+
+function makeTiles(word){
+  var letters=word.split('');
+  var extras=letters.length>=8?2:(letters.length>=6?3:(letters.length<=3?3:4));
+  var alpha='abcdefghijklmnopqrstuvwxyz';
+  var bag=letters.slice();
+  var guard=0;
+  while(bag.length<letters.length+extras && guard++<100){
+    var c=alpha.charAt(rnd(26));
+    var count=0, inWord=0, i;
+    for(i=0;i<bag.length;i++) if(bag[i]===c) count++;
+    for(i=0;i<letters.length;i++) if(letters[i]===c) inWord++;
+    if(count>inWord) continue;
+    bag.push(c);
+  }
+  shuffle(bag);
+  return bag.map(function(ch){return {ch:ch, used:false};});
+}
+function pickMon(ids){
+  var id=ids[rnd(ids.length)], guard=0;
+  while(Run&&id===Run.lastMon&&ids.length>1&&guard++<8) id=ids[rnd(ids.length)];
+  Run.lastMon=id;
+  var m=MONS[id];
+  return {id:id, n:m.n, color:m.color};
+}
+
+function startRoute(id, gym){
+  hush();
+  if(!wordList(id).length){toast('Add words first');return;}
+  Run={route:id, hints:3, gym:!!gym, gymStreak:0, hearts:3, progress:0, perfect:true, heard:false, lastMon:0};
+  show('play');
+  nextEncounter();
+}
+function nextEncounter(){
+  var info=routeInfo(Run.route);
+  var w=drawWord(Run.route);
+  if(!w){toast('No words yet'); showMap(); return;}
+  Word={w:w, sentence:sentenceFor(Run.route,w), tiles:makeTiles(w)};
+  Run.hearts=3;
+  Run.progress=0;
+  Run.perfect=true;
+  Run.heard=false;
+  Run.mon=Run.gym?pickMon([info.gym]):pickMon(info.wild);
+  Phase='hear';
+  hintToken++;
+  paintPlay();
+}
+function paintPlay(){
+  var info=routeInfo(Run.route);
+  $('#playTitle').textContent=Run.gym?(info.leader+'’s Gym'):info.name;
+  $('#scorePill').textContent=Run.gym?(Run.gymStreak+'/'+gymNeed(Run.route)):(Math.min(S.routes[Run.route].cleared, beforeGym(Run.route))+'/'+beforeGym(Run.route));
+  paintHearts();
+  paintLevels();
+  $('#foeName').textContent=(Run.gym?'Leader ':'Wild ')+Run.mon.n;
+  mountSprite($('#foeSlot'), Run.mon.id, false);
+  mountSprite($('#meSlot'), 25, true);
+  $('#foeSlot').classList.remove('runoff');
+  paintSlots(false);
+  $('#hear').hidden=!!Run.heard;
+  $('#replay').hidden=!Run.heard;
+  $('#sentence').hidden=!Run.heard;
+  $('#tiles').hidden=!Run.heard || !!S.keyboard;
+  $('#keys').hidden=!Run.heard || !S.keyboard;
+  $('#prompt').textContent=Run.heard
+    ? (Phase==='review' ? ('Tap each letter: '+Word.w.split('').join(' · ')) : (Run.gym?'Spell it to strike the gym leader.':'Tap the letters in order.'))
+    : (Run.gym?(info.leader+' wants '+gymNeed(Run.route)+' words in a row. Tap to hear.'):'Tap the speaker. Then spell what you hear.');
+  $('#hintBtn').disabled=Phase!=='spell'||Run.hints<=0;
+  $('#hintBtn').textContent='Hint · '+Run.hints;
+  $('#keyMode').textContent=S.keyboard?'Letter tiles':'A–Z keyboard';
+  if(Run.heard) paintLetters();
+}
+function paintHearts(){
+  var h='';
+  for(var i=0;i<3;i++) h+='<i class="'+(i<Run.hearts?'on':'')+'">❤️</i>';
+  $('#hearts').innerHTML=h;
+}
+function paintSlots(reveal){
+  var box=$('#slots');
+  box.innerHTML='';
+  if(!Word) return;
+  for(var i=0;i<Word.w.length;i++){
+    var d=document.createElement('div');
+    var showLetter=reveal||i<Run.progress;
+    d.className='slot'+(i<Run.progress?' filled':'')+(reveal&&i>=Run.progress?' reveal':'');
+    d.textContent=showLetter?Word.w.charAt(i):'';
+    box.appendChild(d);
+  }
+}
+function paintLetters(){
+  if(S.keyboard) paintKeys();
+  else paintTiles();
+  $('#tiles').hidden=!!S.keyboard;
+  $('#keys').hidden=!S.keyboard;
+}
+function paintTiles(){
+  var box=$('#tiles');
+  box.innerHTML='';
+  Word.tiles.forEach(function(t){
+    var b=document.createElement('button');
+    b.type='button';
+    b.className='tile chunky'+(t.used?' used':'');
+    b.textContent=t.ch;
+    b.disabled=t.used||Phase==='hear'||Phase==='hint';
+    b.setAttribute('aria-label','letter '+t.ch);
+    if(Phase==='review'&&!t.used&&t.ch===Word.w.charAt(Run.progress)) b.classList.add('next');
+    b.addEventListener('click',function(){onLetter(t.ch,b);});
+    box.appendChild(b);
+  });
+}
+function paintKeys(){
+  var box=$('#keys');
+  box.innerHTML='';
+  var rows=['abcdefg','hijklmn','opqrstu','vwxyz'];
+  rows.join('').split('').forEach(function(ch){
+    var b=document.createElement('button');
+    b.type='button';
+    b.className='key chunky';
+    b.textContent=ch;
+    b.disabled=Phase==='hear'||Phase==='hint';
+    b.setAttribute('aria-label','letter '+ch);
+    if(Phase==='review'&&ch===Word.w.charAt(Run.progress)) b.classList.add('next');
+    b.addEventListener('click',function(){onLetter(ch,b);});
+    box.appendChild(b);
+  });
+}
+function consumeTile(ch){
+  for(var i=0;i<Word.tiles.length;i++){
+    if(!Word.tiles[i].used&&Word.tiles[i].ch===ch){Word.tiles[i].used=true;return;}
+  }
+}
+function zap(){
+  var z=$('#zap');
+  z.classList.remove('on'); void z.offsetWidth; z.classList.add('on');
+  var foe=$('#foeSlot');
+  foe.classList.remove('flash'); void foe.offsetWidth; foe.classList.add('flash');
+  SFX.zap();
+}
+function onLetter(ch,btn){
+  if(!Word||(Phase!=='spell'&&Phase!=='review')||!Run.heard) return;
+  var need=Word.w.charAt(Run.progress);
+  if(ch===need){
+    consumeTile(ch);
+    Run.progress++;
+    SFX.ok();
+    zap();
+    paintSlots(false);
+    paintLetters();
+    if(Run.progress>=Word.w.length){
+      if(Phase==='review') finishReview();
+      else finishWord();
+    }
+  }else if(Phase==='spell'){
+    Run.hearts--;
+    Run.perfect=false;
+    SFX.bad();
+    if(btn){btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');}
+    paintHearts();
+    if(Run.hearts<=0) startReview();
+  }else{
+    SFX.bad();
+    if(btn){btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');}
+  }
+}
+function noteResult(ok){
+  var w=Word.w;
+  var f=S.stats[w]||(S.stats[w]={r:0,w:0});
+  if(ok) f.r++; else f.w++;
+  var rt=S.routes[Run.route];
+  if(ok) rt.correct++; else rt.wrong++;
+  save();
+}
+function award(perfect){
+  var gain=(Run.gym?16:12)+(perfect?8:0);
+  var before=levelFor(S.xp);
+  S.xp+=gain;
+  var after=levelFor(S.xp);
+  save();
+  return {gain:gain, leveled:after>before, level:after};
+}
+function addDex(mon){
+  var k=String(mon.id);
+  if(!S.pokedex[k]) S.pokedex[k]={id:mon.id, count:0};
+  S.pokedex[k].count++;
+  save();
+}
+function finishWord(){
+  Phase='catch';
+  noteResult(true);
+  if(Run.gym) Run.gymStreak++;
+  else S.routes[Run.route].cleared++;
+  var prize=award(Run.perfect);
+  addDex(Run.mon);
+  SFX.catch();
+  var done=Run.gym&&Run.gymStreak>=gymNeed(Run.route);
+  showResult({
+    title:'Gotcha! '+Run.mon.n+'!',
+    word:Word.w,
+    text:(Run.perfect?'Perfect spelling! ':'')+'+'+prize.gain+' XP'+(prize.leveled?('  ·  Pikachu grew to Lv.'+prize.level+'!'):'')+(Run.gym?('  ·  Gym '+Run.gymStreak+'/'+gymNeed(Run.route)):''),
+    mon:Run.mon,
+    next:done?'Take the badge':'Next'
+  });
+}
+function startReview(){
+  Phase='review';
+  missWord(Run.route, Word.w);
+  noteResult(false);
+  Run.progress=0;
+  Word.tiles.forEach(function(t){t.used=false;});
+  if(Run.gym) Run.gymStreak=0;
+  $('#foeSlot').classList.add('runoff');
+  $('#prompt').textContent='The word is '+Word.w+'. Tap it letter by letter.';
+  $('#scorePill').textContent=Run.gym?('0/'+gymNeed(Run.route)):$('#scorePill').textContent;
+  paintSlots(false);
+  paintLetters();
+  $('#hintBtn').disabled=true;
+}
+function finishReview(){
+  Phase='away';
+  SFX.bad();
+  showResult({
+    title:Run.mon.n+' ran away',
+    word:Word.w,
+    text:Run.gym?'One miss resets the gym streak. This word comes back soon.':'We will practice this word again soon.',
+    mon:Run.mon,
+    next:'Next'
+  });
+}
+function showResult(o){
+  $('#resultTitle').textContent=o.title;
+  $('#resultWord').textContent=o.word||'';
+  $('#resultText').textContent=o.text||'';
+  $('#resultNext').textContent=o.next||'Next';
+  mountSprite($('#resultSprite'), o.mon.id, false);
+  $('#resultOv').classList.add('show');
+  paintLevels();
+}
+function giveBadge(){
+  var info=routeInfo(Run.route);
+  S.routes[Run.route].badge=true;
+  save();
+  Phase='badge';
+  SFX.fan();
+  var nxt=null;
+  ROUTES.forEach(function(r,i){ if(r.id===Run.route&&ROUTES[i+1]) nxt=ROUTES[i+1]; });
+  showResult({
+    title:info.badge+' Badge!',
+    word:info.badge,
+    text:info.leader+' is proud of you.'+(nxt?(' '+nxt.name+' is open!'):(Run.route==='school'?' This week’s list is finished!':' You climbed Thunder Peak!')),
+    mon:{id:info.gym, n:MONS[info.gym].n},
+    next:'Back to routes'
+  });
+}
+$('#resultNext').addEventListener('click',function(){
+  SFX.tap();
+  $('#resultOv').classList.remove('show');
+  if(Phase==='badge'){showMap();return;}
+  if(Phase==='catch'&&Run.gym&&Run.gymStreak>=gymNeed(Run.route)){giveBadge();return;}
+  if(Phase==='catch'||Phase==='away') nextEncounter();
+});
+$('#hear').addEventListener('click',function(){
+  unlockAudio();
+  SFX.tap();
+  if(!Word) return;
+  speak(Word.w);
+  Run.heard=true;
+  Phase='spell';
+  paintPlay();
+});
+$('#replay').addEventListener('click',function(){unlockAudio();SFX.tap(); if(Word) speak(Word.w);});
+$('#sentence').addEventListener('click',function(){unlockAudio();SFX.tap(); if(Word) speak(Word.sentence);});
+$('#hintBtn').addEventListener('click',function(){
+  if(Phase!=='spell'||!Run||Run.hints<=0||!Word) return;
+  SFX.tap();
+  Run.hints--;
+  Phase='hint';
+  paintSlots(true);
+  $('#hintBtn').textContent='Hint · '+Run.hints;
+  $('#hintBtn').disabled=true;
+  paintLetters();
+  var token=++hintToken;
+  setTimeout(function(){
+    if(token!==hintToken||!Word) return;
+    if(Phase==='hint') Phase='spell';
+    paintSlots(false);
+    paintPlay();
+  },2000);
+});
+$('#keyMode').addEventListener('click',function(){
+  S.keyboard=!S.keyboard; save(); SFX.tap();
+  if(Run&&Run.heard) paintPlay();
+  else $('#keyMode').textContent=S.keyboard?'Letter tiles':'A–Z keyboard';
+});
+$('#playBack').addEventListener('click',function(){
+  SFX.tap(); hush();
+  if(Word&&(Phase==='hear'||Phase==='spell'||Phase==='hint'||Phase==='review')) returnWord(Run.route, Word.w);
+  hintToken++;
+  showMap();
+});
+
+function showMap(){hush(); show('map'); renderMap();}
+function showDex(){
+  var g=$('#dexGrid');
+  g.innerHTML='';
+  var ids=Object.keys(S.pokedex).sort(function(a,b){return (+a)-(+b);});
+  ids.forEach(function(id){
+    var m=MONS[+id], card=document.createElement('div');
+    card.className='dcard';
+    card.innerHTML='<div class="slot"></div><div>'+m.n+'</div><div class="sub">×'+S.pokedex[id].count+'</div>';
+    mountSprite(card.querySelector('.slot'), +id, false);
+    g.appendChild(card);
+  });
+  show('dex');
+}
+$('#goBtn').addEventListener('click',function(){SFX.tap(); showMap();});
+$('#mapBack').addEventListener('click',function(){SFX.tap(); show('title'); paintLevels();});
+$('#titleDex').addEventListener('click',function(){SFX.tap(); dexReturn='title'; showDex();});
+$('#mapDex').addEventListener('click',function(){SFX.tap(); dexReturn='map'; showDex();});
+$('#dexBack').addEventListener('click',function(){SFX.tap(); show(dexReturn);});
+
+var gateAns=0;
+function newGate(){
+  var a=12+rnd(10), b=11+rnd(8);
+  gateAns=a*b;
+  $('#gateQ').textContent=a+' × '+b+' = ?';
+  $('#gateIn').value='';
+}
+function openGate(){
+  newGate();
+  $('#gateOv').classList.add('show');
+  setTimeout(function(){try{$('#gateIn').focus();}catch(e){}},40);
+}
+$('#titleGear').addEventListener('click',function(){SFX.tap(); returnTo='title'; openGate();});
+$('#gateCancel').addEventListener('click',function(){$('#gateOv').classList.remove('show');});
+function tryGate(){
+  if(parseInt($('#gateIn').value,10)===gateAns){$('#gateOv').classList.remove('show'); renderParent(); show('parent');}
+  else{newGate(); $('#gateIn').classList.add('shake');}
+}
+$('#gateGo').addEventListener('click',tryGate);
+$('#gateIn').addEventListener('keydown',function(e){if(e.key==='Enter') tryGate();});
+$('#parBack').addEventListener('click',function(){show(returnTo); paintLevels();});
+
+function saveSchool(text){
+  var parts=String(text||'').toLowerCase().split(/[^a-z]+/);
+  var out=[], seen={};
+  parts.forEach(function(w){
+    if(!/^[a-z]{2,14}$/.test(w)||seen[w]||out.length>=40) return;
+    seen[w]=1; out.push(w);
+  });
+  S.schoolText=text;
+  S.schoolWords=out;
+  S.decks.school={remaining:shuffle(out.slice()), last:'', seen:out.slice()};
+  if(!S.routes.school) S.routes.school=blankRoute();
+  save();
+  return out;
+}
+function renderParent(){
+  var h='';
+  h+='<div class="psec"><h3>Weekly spelling list</h3>';
+  h+='<p>Type or paste words, separated by commas or new lines. These become the School List route.</p>';
+  h+='<textarea id="weekly" aria-label="Weekly spelling list">'+escapeHtml(S.schoolText||'')+'</textarea>';
+  h+='<div class="rowbtns" style="margin-top:8px"><button id="saveWeekly" class="big g chunky" type="button">Save school list</button></div>';
+  h+='<p id="weeklyNote">'+(S.schoolWords.length?(S.schoolWords.length+' words ready: '+S.schoolWords.join(', ')):'No school words yet.')+'</p></div>';
+  h+='<div class="psec"><h3>Accuracy by route</h3><div class="pcards">';
+  ROUTES.concat([SCHOOL]).forEach(function(r){
+    var st=S.routes[r.id]||blankRoute();
+    var tot=st.correct+st.wrong;
+    var acc=tot?Math.round(100*st.correct/tot)+'%':'—';
+    h+='<div class="pcard"><b>'+acc+'</b><span>'+r.name+(st.badge?' · badge':'')+'</span></div>';
+  });
+  h+='</div></div>';
+  var missed=[];
+  Object.keys(S.stats).forEach(function(w){ if(S.stats[w].w>0) missed.push({w:w, r:S.stats[w].r, m:S.stats[w].w}); });
+  missed.sort(function(a,b){return b.m-a.m||a.w.localeCompare(b.w);});
+  h+='<div class="psec"><h3>Words he misses most</h3>';
+  if(!missed.length) h+='<div>No missed words yet.</div>';
+  else{
+    h+='<ul>';
+    missed.slice(0,12).forEach(function(t){ h+='<li><b>'+t.w+'</b> — '+t.m+' missed, '+t.r+' caught</li>'; });
+    h+='</ul>';
+  }
+  h+='</div>';
+  h+='<div class="psec"><h3>Pikachu</h3><p>Level '+levelFor(S.xp)+' · '+S.xp+' XP. A catch is 12 XP, 16 in a gym, plus 8 for a perfect word. Every 40 XP levels Pikachu up.</p></div>';
+  h+='<div class="psec"><h3>Reset</h3><button id="resetBtn" class="big r chunky" type="button">Reset Word Quest…</button></div>';
+  $('#parentBody').innerHTML=h;
+  $('#saveWeekly').addEventListener('click',function(){
+    var words=saveSchool($('#weekly').value);
+    $('#weeklyNote').textContent=words.length?(words.length+' words ready: '+words.join(', ')):'No school words yet.';
+    toast(words.length?'School list saved':'School list cleared');
+  });
+  $('#resetBtn').addEventListener('click',function(){$('#confirmOv').classList.add('show');});
+}
+function escapeHtml(s){return String(s).replace(/[&<>]/g,function(c){return c==='&'?'&amp;':c==='<'?'&lt;':'&gt;';});}
+$('#cfNo').addEventListener('click',function(){$('#confirmOv').classList.remove('show');});
+$('#cfYes').addEventListener('click',function(){
+  var m=S.muted;
+  S=defaults(); S.muted=m; save();
+  $('#confirmOv').classList.remove('show');
+  renderParent();
+  paintLevels();
+  toast('Progress erased');
+});
+
+function showTitle(){show('title'); paintLevels();}
+mountSprite($('#titlePika'),25,false);
+refreshMute();
+paintLevels();
+
+window.__wq={
+  get state(){return S;},
+  get phase(){return Phase;},
+  get word(){return Word;},
+  get run(){return Run;},
+  routes:ROUTES,
+  words:wordList,
+  drawWord:drawWord,
+  missWord:missWord,
+  levelFor:levelFor,
+  speak:speak,
+  gymNeed:gymNeed
+};
+})();
+</script>
+</body>
+</html>
