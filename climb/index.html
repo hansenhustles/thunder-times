@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Don't Zap Down — Oliver's Pokémon climbing game. Reach the Champion Summit and recharge with 5th-grade math." />
+    <title>Don't Zap Down — Oliver's Volt Tower</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script type="module" crossorigin src="./assets/index-MWLNjJvA.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Cha3PIuJ.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="world" width="480" height="800" aria-label="Volt Tower"></canvas>
+
+      <header id="hud" hidden>
+        <div id="hud-panel">
+          <div class="hud-top">
+            <div class="who">
+              <img id="portrait" width="52" height="52" alt="" />
+              <div>
+                <div id="trainer">Oliver</div>
+                <div id="equipped-name">Pikachu</div>
+              </div>
+            </div>
+            <div class="alt-block">
+              <div id="altitude">0.0 m</div>
+              <div id="zone-chip">Pallet Meadow</div>
+            </div>
+            <div class="score-block">
+              <div id="score">0</div>
+              <div class="label">score</div>
+              <div id="hud-tokens">0 tokens</div>
+            </div>
+          </div>
+          <button id="energy" type="button" aria-label="Volt energy. Open the Question Terminal">
+            <span class="energy-label">VOLT</span>
+            <span class="energy-track"><span id="energy-fill"></span></span>
+            <span id="energy-value">100</span>
+          </button>
+          <div class="hud-bottom">
+            <div id="streak">Streak ×0</div>
+            <div id="hint"></div>
+            <div class="hud-actions">
+              <button id="btn-mute" type="button" aria-pressed="false">Sound on</button>
+              <button id="btn-pause" type="button">Pause</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div id="toasts" aria-live="polite"></div>
+
+      <div id="touch">
+        <div class="cluster left">
+          <button type="button" id="touch-left" aria-label="Move left">◀</button>
+          <button type="button" id="touch-right" aria-label="Move right">▶</button>
+        </div>
+        <div class="cluster right">
+          <button type="button" id="touch-term" aria-label="Open question terminal">Volt</button>
+          <button type="button" id="touch-jump" aria-label="Jump">Jump</button>
+        </div>
+      </div>
+
+      <section id="screen-title" class="screen">
+        <div class="title-card">
+          <p class="eyebrow">Trainer Oliver</p>
+          <h1>Don't Zap Down</h1>
+          <p class="lede">Climb the Volt Tower. Answer to recharge. Don't look down.</p>
+          <div class="stat-row">
+            <div><span>Best</span><strong id="title-best">0.0 m</strong></div>
+            <div><span>Summit</span><strong id="title-fast">—</strong></div>
+            <div><span>Tokens</span><strong id="title-tokens">0</strong></div>
+          </div>
+          <p id="title-career" class="career">0 correct · 0 climbs</p>
+          <div class="stack">
+            <button id="btn-play" class="chunk xl" type="button">Climb</button>
+            <div class="row">
+              <button id="btn-shop" class="chunk" type="button">Pack Shop</button>
+              <button id="btn-dex" class="chunk" type="button">Pokédex</button>
+            </div>
+            <div class="row">
+              <button id="btn-help" class="chunk ghost" type="button">How to climb</button>
+              <button id="btn-mute-title" class="chunk ghost" type="button" aria-pressed="false">Sound on</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-help" class="screen dim" hidden>
+        <div class="panel">
+          <p class="eyebrow">Field guide</p>
+          <h2>How Oliver climbs</h2>
+          <ul class="guide">
+            <li><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> move. <kbd>↑</kbd> <kbd>W</kbd> <kbd>Space</kbd> jumps. Press jump again in the air to double jump.</li>
+            <li><kbd>E</kbd> or <kbd>Q</kbd>, or the VOLT bar, opens the Question Terminal. Keys <kbd>1</kbd>–<kbd>4</kbd> answer. A streak stores a bigger spark.</li>
+            <li>Running and jumping spend VOLT. Bounce pads are free. Higher up, platforms slide.</li>
+            <li>Fall off the bottom and you land back on the last ledge. The camera only climbs.</li>
+            <li>Five zones: Pallet Meadow, Viridian Canopy, Cerulean Falls, Zapdos Spire, Champion Summit at 1,000 m.</li>
+            <li>Tokens at the end of a climb buy packs. Equip any Pokémon you catch.</li>
+          </ul>
+          <button id="btn-back-help" class="chunk" type="button">Back</button>
+        </div>
+      </section>
+
+      <section id="screen-shop" class="screen dim" hidden>
+        <div class="panel wide">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Lock packs</p>
+              <h2>Pack Shop</h2>
+            </div>
+            <strong id="shop-tokens">0 tokens</strong>
+          </div>
+          <p class="lede">Locked packs open with tokens from climbs. Every pull joins Oliver's Pokédex.</p>
+          <div id="pack-list"></div>
+          <button id="btn-back-shop" class="chunk ghost" type="button">Back</button>
+        </div>
+      </section>
+
+      <section id="screen-dex" class="screen dim" hidden>
+        <div class="panel wide">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Oliver's team</p>
+              <h2>Pokédex</h2>
+            </div>
+            <strong id="dex-count">1 in the Pokédex</strong>
+          </div>
+          <p class="lede">Tap a Pokémon to equip them for the next climb. Pikachu starts on the team.</p>
+          <div id="dex-grid"></div>
+          <button id="btn-back-dex" class="chunk ghost" type="button">Back</button>
+        </div>
+      </section>
+
+      <section id="screen-terminal" class="screen terminal" hidden>
+        <div class="panel terminal-panel" role="dialog" aria-labelledby="terminal-title">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow" id="terminal-tier">Pallet Meadow</p>
+              <h2 id="terminal-title">Question Terminal</h2>
+            </div>
+            <button id="btn-close-terminal" class="chunk" type="button">Climb</button>
+          </div>
+          <p id="question-prompt">6 × 7</p>
+          <div id="choices"></div>
+          <p id="feedback" aria-live="polite"></p>
+          <p id="gain-line" class="fine">Correct answer restores VOLT.</p>
+        </div>
+      </section>
+
+      <section id="screen-pause" class="screen dim" hidden>
+        <div class="panel">
+          <p class="eyebrow">Hold on</p>
+          <h2>Paused</h2>
+          <p class="lede">Arrows or WASD to move. Up, W, or Space jumps — again in the air for a double jump. E or Q opens the Question Terminal.</p>
+          <div class="stack">
+            <button id="btn-resume" class="chunk xl" type="button">Keep climbing</button>
+            <button id="btn-end-run" class="chunk" type="button">Bank tokens &amp; end climb</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-results" class="screen dim" hidden>
+        <div class="panel">
+          <p class="eyebrow">Run complete</p>
+          <h2 id="results-title">Climb banked!</h2>
+          <div class="stat-row">
+            <div><span>Altitude</span><strong id="results-altitude">0 m</strong></div>
+            <div><span>Score</span><strong id="results-score">0</strong></div>
+            <div><span>Math</span><strong id="results-accuracy">—</strong></div>
+          </div>
+          <p id="results-earned" class="earned">+0 tokens</p>
+          <p id="results-badges" class="badges"></p>
+          <div class="stack">
+            <button id="btn-climb-again" class="chunk xl" type="button">Climb again</button>
+            <div class="row">
+              <button id="btn-results-shop" class="chunk" type="button">Pack Shop</button>
+              <button id="btn-results-title" class="chunk ghost" type="button">Title</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-reveal" class="screen dim" hidden>
+        <div class="panel wide">
+          <p class="eyebrow">Pack open</p>
+          <h2 id="reveal-title">Starter Pack</h2>
+          <p class="lede">Tap a card or wait for the reveal.</p>
+          <div id="reveal-cards"></div>
+          <button id="btn-reveal-done" class="chunk" type="button">Back to the shop</button>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
